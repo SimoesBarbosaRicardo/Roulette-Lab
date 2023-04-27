@@ -272,7 +272,7 @@ function(input, output, session) {
       annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
                label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
       # show all clickable points
-      #geom_point(data = clickable, aes(x=x, y=y)) +
+      geom_point(data = clickable, aes(x=x, y=y)) +
       # Bets are drawn on the table here
       geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
                  colour = "dimgray", size = 12) +

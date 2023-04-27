@@ -406,6 +406,9 @@ roulette <- function(verbose = FALSE) {
     cat("Landed on:", slotLanded, "\n")
 
   tableIndex <- which(bettingTable$slotNum == slotLanded)
+  #ce which permet d'assigner à tableIndex l'élément ligne de bettingTable dont le chiffre de soltNum est le meme
+  #que slotLanded
+  #ie. définit quelle ligne est gagnante
 
   return(list(slotLanded = slotLanded,
               color = bettingTable$color[tableIndex],
@@ -428,6 +431,9 @@ require(ggplot2)
 require(stringr)
 require(dplyr)
 require(data.table)
+
+# VII. UI-----------------------------------------
+
 
 
 # Define UI for application that draws a histogram
@@ -486,8 +492,11 @@ ui <- fluidPage(
 
   )
 
+# VIII. Server-----------------------------------------
 
 server <- function(input, output) {
+
+  # I. Reactive Data Frames -------------------------------------------------
 
   selectedPoints <- reactiveValues(data = cbind(clickable[0, ],
                                                 betAmount = double()))
@@ -506,19 +515,14 @@ server <- function(input, output) {
   outcomesList <- reactiveValues(data = cbind(balance = 0,
                                               betNum = 0))
 
-  bottomPlotsData <- reactiveValues(data = cbind(manualNumWins = 0,
-                                                 manualWinnings = 0,
-                                                 manualNumBets = 0,
-                                                 cpuNumWins = 0,
-                                                 cpuWinnings = 0,
-                                                 cpuNumBets = 0))
+
 
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
 
   # Chose the total money to allocate
   output$money <- renderPrint({ input$money })
 
-
+  # II. Bet Amount Selection -------------------------------------------------
   bet <- reactiveValues(amount = 10)
 
   # Choose the bet amount
@@ -548,7 +552,7 @@ server <- function(input, output) {
   })
 
 
-
+  # III. Plots ---------------------------------------------------------------
   # Roulette table
   output$rTable <- renderPlot({
     rouletteTable <- ggplot() +
@@ -584,7 +588,7 @@ server <- function(input, output) {
       annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
                label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
       # show all clickable points
-      #geom_point(data = clickable, aes(x=x, y=y)) +
+      geom_point(data = clickable, aes(x=x, y=y)) +
       # Bets are drawn on the table here
       geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
                  colour = "dimgray", size = 12) +
@@ -596,8 +600,8 @@ server <- function(input, output) {
       theme_bw() +
       ditch_the_axes
 
-    #print(selectedPoints$data)
-    #print(nrow(selectedPoints$data))
+    print(selectedPoints$data)
+    print(nrow(selectedPoints$data))
 
     if (nrow(selectedPoints$data) > 0) {
       rouletteTable <- rouletteTable +
@@ -612,6 +616,7 @@ server <- function(input, output) {
   }, width = 700, height = 700)
 
 
+  # IV. Event Observers -----------------------------------------------------
 
 
   # click function
@@ -680,6 +685,10 @@ server <- function(input, output) {
 
 
 }
+
+
+# IX. Run the app-----------------------------------------
+
 
 # Run the application
 shinyApp(ui = ui, server = server)
