@@ -439,6 +439,11 @@ ui <- fluidPage(
     column(5,
            tabsetPanel(
              tabPanel("Betting",
+                      numericInput("money", label = h3("Money Balance"), value = 1),
+
+                      hr(),
+                      fluidRow(column(3, verbatimTextOutput("money"))),
+
                       br(),
                       ### Manual Betting
                       h4("Manual Betting"),
@@ -485,19 +490,16 @@ ui <- fluidPage(
 server <- function(input, output) {
 
   selectedPoints <- reactiveValues(data = cbind(clickable[0, ],
-                                                betAmount = double(),
-                                                manualBet = logical()))
+                                                betAmount = double()))
 
   roulette <- reactiveValues(winningSlot = NULL, history = NULL)
 
   resultsTable <- reactiveValues(data = cbind(clickable[0, ],
-                                              betAmount = double(),
-                                              manualBet = logical()))
+                                              betAmount = double()))
 
   completeList <- reactiveValues(data = cbind(slots = numeric(),
                                               #clickable[0, 9:ncol(clickable)],
                                               betAmount = double(),
-                                              manualBet = logical(),
                                               outcome = double(),
                                               winningSlot = double()))
 
@@ -510,6 +512,11 @@ server <- function(input, output) {
                                                  cpuNumWins = 0,
                                                  cpuWinnings = 0,
                                                  cpuNumBets = 0))
+
+  session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
+
+  # Chose the total money to allocate
+  output$money <- renderPrint({ input$money })
 
 
   bet <- reactiveValues(amount = 10)
@@ -539,6 +546,8 @@ server <- function(input, output) {
     print("Bet changed to $250")
     bet$amount <- 250
   })
+
+
 
   # Roulette table
   output$rTable <- renderPlot({
@@ -605,7 +614,73 @@ server <- function(input, output) {
 
 
 
+  # click function
+  selected_number <- reactiveValues()
+
+  handle_click <- function(event){
+    n = nrow(clickable)-1
+    x <- event$x
+    y <- event$y
+
+    for(i in 1:n){
+      # here we determine if we're between the coordinates we want.
+      if (x > clickable[i,1] && x < clickable[i+1,1] && y > clickable[i,2] && y < clickable[i+1,2]){
+        selected_number(clickable[i,3])
+      }
+    }
+  }
+
+  observeEvent(input$plot_click,{
+    currentBet <- isolate(bet$amount)
+
+    #click <- handle_click(input$plot_click)
+
+    #this also works
+    click <- nearPoints(clickable, input$plot_click, threshold = 20, maxpoints = 1)
+
+    # this is to debug
+    print("you clicked")
+
+
+
+    newBet <- cbind(click, betAmount = currentBet)
+
+    ## When we use selectedPoints, this is some sort of dataframe we defined
+    ##at the beginning of the program. It contains all the info of clickable
+    ## and the bet amount.
+    ## If we want to see it outside a reactive environment we do :
+    #isolate(selectedPoints$data)
+    #isolate(newBet$data)
+
+    #selectedPoints$data <- rbind(selectedPoints$data, betAmount = newBet)
+
+    #selectedPoints$data <- as.data.frame(selectedPoints$data)
+
+
+
+  })
+
+
+
+
+
+  ## B. Take bets
+
+  #while(output$money > 0){
+    ## First we have to chose what to bet on
+
+
+    ## Then we have to spin the roulette
+
+    ## Then we calculate our payoffs
+
+    ## We add/subtract that to our money balance
+  #}
+
+
+
 }
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
