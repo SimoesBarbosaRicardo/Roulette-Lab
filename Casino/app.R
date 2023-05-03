@@ -494,10 +494,16 @@ ui <- fluidPage(
 
 # VIII. Server-----------------------------------------
 
-server <- function(input, output) {
+server <- function(input, output,session) {
 
   # I. Reactive Data Frames -------------------------------------------------
+  # Store chat history, user names and colors
+  shared_vals <- reactiveValues(chip_color = NULL,
+                                all_colors = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                taken_colors = NULL)
 
+
+  # [0,] to give only the titles of the columns to the data.frame
   selectedPoints <- reactiveValues(data = cbind(clickable[0, ],
                                                 betAmount = double()))
 
@@ -521,6 +527,59 @@ server <- function(input, output) {
 
   # Chose the total money to allocate
   output$money <- renderPrint({ input$money })
+
+  init_user_color <- FALSE
+
+  session$onSessionEnded(function() {
+    isolate({
+      # User color operations
+      shared_vals$all_colors <- c(shared_vals$all_colors, session_vals$user_color)
+      shared_vals$taken_colors <- shared_vals$taken_colors[shared_vals$taken_colors != session_vals$user_color]
+
+    })
+  })
+
+  # Observer to handle changes to the chip color
+  observe({
+    input$chipColor
+
+    # G. For uninitialized session - set random color
+    if (!init_user_color){
+      # 1. Set a random color at first
+      session_vals$user_color <- sample(shared_vals$all_colors, 1)
+      # 2. Initialize the session
+      init_user_color <<- TRUE
+
+    } else {
+      isolate({
+        # H. Check that the color input is valid and allowed
+        #print(input$chipColor)
+        if (input$chipColor == session_vals$user_color || input$chipColor == "" || !(input$chipColor %in% shared_vals$all_colors)){
+          print("Please choose a unique and allowed color")
+          return()
+        }
+        # I. Put the old color to free colors and take it out of the taken colors
+        shared_vals$all_colors <- c(shared_vals$all_colors, session_vals$user_color)
+        shared_vals$taken_colors <- shared_vals$taken_colors[shared_vals$taken_colors != session_vals$user_color]
+
+        # J. Update user color with the new choice
+        session_vals$user_color <- input$chipColor
+      })
+    }
+    # K. Add the new color to the global list for taken colors and out of avialable colors
+    isolate(shared_vals$taken_colors <- c(shared_vals$taken_colors, session_vals$user_color))
+    isolate(shared_vals$all_colors <- shared_vals$all_colors[shared_vals$all_colors != session_vals$user_color])
+
+  })
+
+  # Keep the list of connected users updated
+  output$userList <- renderUI({
+    tagList(tags$ul(lapply(shared_vals$users, function(user){
+      return(tags$li(user))
+    })))
+  })
+
+
 
   # II. Bet Amount Selection -------------------------------------------------
   bet <- reactiveValues(amount = 10)
@@ -643,12 +702,9 @@ server <- function(input, output) {
     #this also works
     click <- nearPoints(clickable, input$plot_click, threshold = 20, maxpoints = 1)
 
-    # this is to debug
-    print("you clicked")
 
-
-
-    newBet <- cbind(click, betAmount = currentBet)
+    if(nrow(click) != 0 ){
+    newBet <- cbind(click, betAmount = currentBet,user_color = session_vals$user_color)
 
     ## When we use selectedPoints, this is some sort of dataframe we defined
     ##at the beginning of the program. It contains all the info of clickable
@@ -657,12 +713,18 @@ server <- function(input, output) {
     #isolate(selectedPoints$data)
     #isolate(newBet$data)
 
-    #selectedPoints$data <- rbind(selectedPoints$data, betAmount = newBet)
+    # add new bet
+    selectedPoints$data <- rbind(selectedPoints$data, newBet)
+
+    paste("the number you clicked on is ", click$b1)
+
+    selectedPoints$data <- as.data.frame(selectedPoints$data)
+
 
     #selectedPoints$data <- as.data.frame(selectedPoints$data)
 
 
-
+    }
   })
 
 
