@@ -5,18 +5,23 @@ require(ggplot2)
 
 slotNum <- c(0, "00" , c(1:36))
 
+# On vectorise les couleurs : 3 pour vert, 2 pour noir, 1 pour rouge
 color <- c(rep(3, 2),
            rep(c(1, 2), 5),
            rep(c(2, 1), 4),
            rep(c(1, 2), 5),
            rep(c(2, 1), 4))
 
-
+# on vectorise les nombres pairs : 1 pour pair et le reste 0
 even <- c(rep(0, 2), rep(c(0,1), 18))
+# on vectorise les nombres impairs : 1 pour impair et le reste 0
 odd <- c(rep(0, 2), rep(c(1,0), 18))
+# 0 et 00 sont ni impairs ni pairs. donc 0.
 
+# pareil on vectorise low et high
 low <- c(rep(0,2), rep(1, 18), rep(0, 18))
 high <- c(rep(0,2), rep(0, 18), rep(1, 18))
+
 
 snakeBet <- c(rep(0,2),
               rep(c(1,0,0,0), 2),
@@ -410,6 +415,10 @@ roulette <- function(verbose = FALSE) {
   #que slotLanded
   #ie. définit quelle ligne est gagnante
 
+
+  # Ce return nous renvoie une liste contenant le numéro gagnant ainsi que sont
+  # appartenance aux différents types de bets
+  # e.g. le 28 est noir, pair etc.
   return(list(slotLanded = slotLanded,
               color = bettingTable$color[tableIndex],
               even = bettingTable$even[tableIndex],
@@ -419,6 +428,9 @@ roulette <- function(verbose = FALSE) {
               snakeBet = bettingTable$snakeBet[tableIndex],
               dozen = bettingTable$dozen[tableIndex],
               column = bettingTable$column[tableIndex]))
+
+  # roulette retourne une liste contenant le numéro gagnant ainsi que ses charactéristiques
+  # en 1 et 0.
 }
 
 
@@ -431,6 +443,8 @@ require(ggplot2)
 require(stringr)
 require(dplyr)
 require(data.table)
+
+
 
 # VII. UI-----------------------------------------
 
@@ -659,8 +673,8 @@ server <- function(input, output,session) {
       theme_bw() +
       ditch_the_axes
 
-    print(selectedPoints$data)
-    print(nrow(selectedPoints$data))
+    #print(selectedPoints$data)
+    #print(nrow(selectedPoints$data))
 
     if (nrow(selectedPoints$data) > 0) {
       rouletteTable <- rouletteTable +
@@ -720,32 +734,209 @@ server <- function(input, output,session) {
 
     selectedPoints$data <- as.data.frame(selectedPoints$data)
 
-
-    #selectedPoints$data <- as.data.frame(selectedPoints$data)
-
+    # combine same bets. Easier to calculate the payouts.
+    selectedPoints$data <- selectedPoints$data %>%
+      group_by_at(setdiff(names(selectedPoints$data), c("betAmount", "x", "y", "user_color"))) %>%
+      summarize(betAmount = sum(betAmount), x = tail(x, 1), y = tail(y, 1), user_color = last(user_color)) %>%
+      as.data.table()
 
     }
+
+
   })
 
 
+  ## D. Spin the wheel------
+  observeEvent(input$spin, {
+    # save the bets for results tables
+    resultsTable$data <- selectedPoints$data
+
+    # clear the betting table
+    selectedPoints$data <- cbind(clickable[0, ], betAmount = double())
+
+    # spin the roulette
+    # roulette retourne une liste avec le numéro gagnant ainsi que ses charactéristiques
+    # sous forme de 1 et 0.
+    roulette$winningSlot <- roulette(verbose = TRUE)
+
+    # Save spin results
+    # roulette$history <- c(roulette$history, roulette$winningSlot$slotLanded)
+    # On n'utilise pas ça car on pense que c'est mieux de récupérer l'historique à
+    # l'extérieur lorsqu'on appelle une fonction stratégie. De façon à réduire le
+    # temps de calcul de cette stratégie lorsqu'on l'appelle beaucoup de fois.
+
+    if (nrow(resultsTable$data) > 0) {
+      tableOverall <- data.frame(slots = apply(resultsTable$data, 1, combineSlots),
+                                 betAmount = resultsTable$data$betAmount,
+                                 outcome = apply(resultsTable$data, 1, checkWin))
+
+      #print("results table")
+      #print(resultsTable$data) it prints what is betted on
+      print("table_overall")
+      print(tableOverall)
 
 
-
-  ## B. Take bets
-
-  #while(output$money > 0){
-    ## First we have to chose what to bet on
-
-
-    ## Then we have to spin the roulette
-
-    ## Then we calculate our payoffs
-
-    ## We add/subtract that to our money balance
-  #}
+      # Grab the bets and sum the bet outcomes
+      bet_results <- if(nrow(tableOverall) > 0){
+        data.frame(outcome = apply(tableOverall, 1, computeTotal))
+      }else{
+        data.frame(outcome = NULL,
+                   stringsAsFactors = FALSE)
+      }
 
 
+      print("bet_results")
+      print(bet_results[[1]])
 
+      #this is the same thing as total above.
+    #   manualTotals <- ifelse(nrow(tableOverall[tableOverall$manualBet == TRUE, ]) > 0,
+    #                          data.frame(outcome = apply(tableOverall[tableOverall$manualBet == TRUE, ], 1, computeTotal),
+    #                                     stringsAsFactors = FALSE),
+    #                          data.frame(outcome = NULL,
+    #                                     stringsAsFactors = FALSE))
+    #
+    # }
+
+    }
+
+    # we print the sum of our bets.
+    net_gain_loss <- sum(bet_results)
+    print(net_gain_loss)
+
+})
+
+  # V. Helper Functions -----
+
+  checkWin <- function(row) {
+    # Cette fonction retourne un string nous disant si on a gagné ou pas et combien
+
+    # check for inside bets first row[10] -> row$type
+    # 1 2 3  4  5  6  7  8  9      10    11        12
+    # x y b1 b2 b3 b4 b5 b6 payOut type betAmount manualBet
+
+    # On check si on est dans inside ou outside bets. Donc le type de bet
+    if (row["type"] %in% c("Single", "Split", "Square Bet", "Line Bet", "Street Bet", "Trio Bet", "Top Line Bet")) {
+      #On calcule le payout
+      payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
+      # WinnerFlag is TRUE if one of the b1 to b6 is equal to the winning number.
+      # na.rm is used to get rid of the NAs
+      # e.g. When we bet on a single number. Only b1 is filled, b2 to b6 are not
+      winnerFlag <- any(c(row[paste0("b", 1:6)]) == roulette$winningSlot$slotLanded, na.rm = TRUE)
+      # this outputs us the amount we won or lost
+      if (winnerFlag) {
+        return(paste("won: $", payout, sep = ""))
+      }
+      else {
+        return(paste("lost: $", row["betAmount"], sep = ""))
+      }
+
+      # checks if we're in outside bets
+    }
+    else if (row["type"] %in% c("Column Bet", "Dozen Bet", "High", "Low", "Even", "Odd", "Red", "Black")) {
+      # we calculate the payouts
+      payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
+      if (row["type"] == "Column Bet") {
+        if (substr(row["b1"], 1, 1) == roulette$winningSlot$column) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Dozen Bet") {
+        # print("check")
+        # print(roulette$winningSlot$dozen)
+        if (substr(row["b1"], 1, 1) == roulette$winningSlot$dozen) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "High") {
+        if (roulette$winningSlot$high) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Low") {
+        if (roulette$winningSlot$low) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Even") { # si la personne a bet sur Even
+        if (roulette$winningSlot$even) { # Et si le résultat gagnant est even,
+          # alors roulette$winningSlot$even est TRUE (ou 1), alors c'est gagné.
+          return(paste("won: $", payout, sep = ""))
+        }
+        else { # sinon c'est perdu
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Odd") {
+        if (roulette$winningSlot$odd) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Red") {
+        if (roulette$winningSlot$color == 1) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Black") {
+        if (roulette$winningSlot$color == 2) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else {
+        return("Unknown outside bet")
+      }
+    }
+    else {
+      return("Unclassified bet")
+    }
+  }
+
+  computeTotal <- function(row) {
+    # Cette fonction extrait les montants gagnés ou perdus.
+
+    # Cette fonction est utilisée avec le data frame tableOverall.
+    # Dans outcome : il y a soit "lost $ Bet$amount", soit "won $ payOut"
+    # ce if, check si la première lettre est un "l", (ou un "w").
+    if (substr(row["outcome"], 1, 1) == "l") {
+      return(-1 * as.numeric(row["betAmount"])) # Si perdu, on perd le betAmount
+    } else {
+      return(as.numeric(str_extract(row["outcome"], "(?<=won: \\$)\\d*")))
+      # Si gagné, on extrait ce qui est gagné du string et on le transforme en nombre.
+    }
+  }
+
+  combineSlots <- function(row) {
+    # Take the betting columns out
+    row <- row[paste0("b", 1:6)]
+
+    # concatenates all the numbers of the slots we betted on as a string.
+    # e.g. if we split bet on 16 and 17 it gives "16, 17"
+    # Remark : If we bet on Red, it outputs "Red", same for Dozen Bet it gives
+    # "2nd Dozen".
+    betList <- str_trim(str_replace_all(paste0(ifelse(is.na(row), "", row), collapse = ", "), "[\\, ]{3,}", ""))
+
+    return(betList)
+  }
 }
 
 

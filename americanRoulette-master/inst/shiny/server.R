@@ -566,7 +566,8 @@ function(input, output, session) {
       #print("Complte List:")
       #print(completeList$data)
 
-    } else {
+    }
+    else {
       totalsOverall <- data.frame(outcome = 0,
                                   stringsAsFactors = FALSE)
       totalsOverall$outcome <- 0
@@ -594,16 +595,27 @@ function(input, output, session) {
     # check for inside bets first row[10] -> row$type
     # 1 2 3  4  5  6  7  8  9      10    11        12
     # x y b1 b2 b3 b4 b5 b6 payOut type betAmount manualBet
+
+    # On check si on est dans inside ou outside bets. Donc le type de bet
     if (row["type"] %in% c("Single", "Split", "Square Bet", "Line Bet", "Street Bet", "Trio Bet", "Top Line Bet")) {
+      #On calcule le payout
       payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
+      # WinnerFlag is TRUE if one of the b1 to b6 is equal to the winning number.
+      # na.rm is used to get rid of the NAs
+      # e.g. When we bet on a single number. Only b1 is filled, b2 to b6 are not
       winnerFlag <- any(c(row[paste0("b", 1:6)]) == roulette$winningSlot$slotLanded, na.rm = TRUE)
+      # this outputs us the amount we won or lost
       if (winnerFlag) {
         return(paste("won: $", payout, sep = ""))
-      } else {
+      }
+      else {
         return(paste("lost: $", row["betAmount"], sep = ""))
       }
-    } else if (row["type"] %in% c("Column Bet", "Dozen Bet", "High", "Low", "Even", "Odd", "Red", "Black")) {
-      # outside bets
+
+      # checks if we're in outside bets
+    }
+    else if (row["type"] %in% c("Column Bet", "Dozen Bet", "High", "Low", "Even", "Odd", "Red", "Black")) {
+      # we calculate the payouts
       payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
       if (row["type"] == "Column Bet") {
         if (substr(row["b1"], 1, 1) == roulette$winningSlot$column) {
@@ -611,7 +623,8 @@ function(input, output, session) {
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Dozen Bet") {
+      }
+      else if (row["type"] == "Dozen Bet") {
         # print("check")
         # print(roulette$winningSlot$dozen)
         if (substr(row["b1"], 1, 1) == roulette$winningSlot$dozen) {
@@ -619,46 +632,56 @@ function(input, output, session) {
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "High") {
+      }
+      else if (row["type"] == "High") {
         if (roulette$winningSlot$high) {
           return(paste("won: $", payout, sep = ""))
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Low") {
+      }
+      else if (row["type"] == "Low") {
         if (roulette$winningSlot$low) {
           return(paste("won: $", payout, sep = ""))
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Even") {
-        if (roulette$winningSlot$even) {
+      }
+      else if (row["type"] == "Even") { # si la personne a bet sur Even
+        if (roulette$winningSlot$even) { # Et si le résultat gagnant est even,
+          # alors roulette$winningSlot$even est TRUE (ou 1), alors c'est gagné.
           return(paste("won: $", payout, sep = ""))
-        } else {
+        }
+        else { # sinon c'est perdu
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Odd") {
+      }
+      else if (row["type"] == "Odd") {
         if (roulette$winningSlot$odd) {
           return(paste("won: $", payout, sep = ""))
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Red") {
+      }
+      else if (row["type"] == "Red") {
         if (roulette$winningSlot$color == 1) {
           return(paste("won: $", payout, sep = ""))
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else if (row["type"] == "Black") {
+      }
+      else if (row["type"] == "Black") {
         if (roulette$winningSlot$color == 2) {
           return(paste("won: $", payout, sep = ""))
         } else {
           return(paste("lost: $", row["betAmount"], sep = ""))
         }
-      } else {
+      }
+      else {
         return("Unknown outside bet")
       }
-    } else {
+    }
+    else {
       return("Unclassified bet")
     }
   }
@@ -666,10 +689,14 @@ function(input, output, session) {
   computeTotal <- function(row) {
     # check  for empty table
 
+    # Cette fonction est utilisée avec le data frame tableOverall.
+    # Dans outcome : il y a soit "lost $ Bet$amount", soit "won $ payOut"
+    # ce if, check si la première lettre est un "l", (ou un "w").
     if (substr(row["outcome"], 1, 1) == "l") {
-      return(-1 * as.numeric(row["betAmount"]))
+      return(-1 * as.numeric(row["betAmount"])) # Si perdu, on perd le betAmount
     } else {
       return(as.numeric(str_extract(row["outcome"], "(?<=won: \\$)\\d*")))
+      # Si gagné, on extrait ce qui est gagné du string et on le transforme en nombre.
     }
   }
 
