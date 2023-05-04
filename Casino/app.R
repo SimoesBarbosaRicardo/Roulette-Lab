@@ -436,6 +436,8 @@ roulette <- function(verbose = FALSE) {
 
 
 
+
+
 library(shiny)
 require(DT)
 require(shiny)
@@ -459,10 +461,11 @@ ui <- fluidPage(
     column(5,
            tabsetPanel(
              tabPanel("Betting",
-                      numericInput("money", label = h3("Money Balance"), value = 1),
+                      numericInput("startbalance", label = h3("Money Balance"), value = 1),
+                      actionButton("add", "add"),
 
                       hr(),
-                      fluidRow(column(3, verbatimTextOutput("money"))),
+                      #fluidRow(column(3, verbatimTextOutput("money"))),
 
                       br(),
                       ### Manual Betting
@@ -484,7 +487,13 @@ ui <- fluidPage(
                       hr(),
 
                       actionButton("spin", "Spin Roulette"),
-                      actionButton("reset", "Reset Bets")
+                      actionButton("reset", "Reset Bets"),
+
+                      verbatimTextOutput("roulette", placeholder = FALSE),
+
+                      # we show our balance of money
+                      verbatimTextOutput("generalbalance", placeholder = FALSE)
+
 
 
 
@@ -535,12 +544,18 @@ server <- function(input, output,session) {
   outcomesList <- reactiveValues(data = cbind(balance = 0,
                                               betNum = 0))
 
+  # we define updatedbalance as a reactive value. This is because this value
+  # will change depending on if have won or lost the bet...
+  updatedbalance <- reactiveValues(balance = 0)
+
 
 
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
 
   # Chose the total money to allocate
-  output$money <- renderPrint({ input$money })
+  #output$money <- renderPrint({ input$money })
+
+  #general_balance <- output$money + general_balance
 
   init_user_color <- FALSE
 
@@ -661,7 +676,7 @@ server <- function(input, output,session) {
       annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
                label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
       # show all clickable points
-      geom_point(data = clickable, aes(x=x, y=y)) +
+      # geom_point(data = clickable, aes(x=x, y=y)) +
       # Bets are drawn on the table here
       geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
                  colour = "dimgray", size = 12) +
@@ -691,22 +706,33 @@ server <- function(input, output,session) {
 
   # IV. Event Observers -----------------------------------------------------
 
+  # this is an observer for when we click on the button "add"
+  # this will update the balance with what we input numerically in the shiny app.
+  # e.g. we input 1000, our balance is 1000.
+  # then whenever we bet and loss (or hopefully) win, it will subtract (or add)
+  # money to that amount.
+  observeEvent(input$add ,{
+    startingbalance <- input$startbalance
+    updatedbalance$balance = startingbalance
+    paste("your balance is now ", updatedbalance$balance)
+  })
+
 
   # click function
   selected_number <- reactiveValues()
 
-  handle_click <- function(event){
-    n = nrow(clickable)-1
-    x <- event$x
-    y <- event$y
-
-    for(i in 1:n){
-      # here we determine if we're between the coordinates we want.
-      if (x > clickable[i,1] && x < clickable[i+1,1] && y > clickable[i,2] && y < clickable[i+1,2]){
-        selected_number(clickable[i,3])
-      }
-    }
-  }
+  # handle_click <- function(event){
+  #   n = nrow(clickable)-1
+  #   x <- event$x
+  #   y <- event$y
+  #
+  #   for(i in 1:n){
+  #     # here we determine if we're between the coordinates we want.
+  #     if (x > clickable[i,1] && x < clickable[i+1,1] && y > clickable[i,2] && y < clickable[i+1,2]){
+  #       selected_number(clickable[i,3])
+  #     }
+  #   }
+  # }
 
   observeEvent(input$plot_click,{
     currentBet <- isolate(bet$amount)
@@ -802,6 +828,13 @@ server <- function(input, output,session) {
     # we print the sum of our bets.
     net_gain_loss <- sum(bet_results)
     print(net_gain_loss)
+
+
+    # we add those gains to our balance
+    # we have to use updatedbalance$balance in order for currentBalance to be numeric
+    currentBalance <- updatedbalance$balance
+    # the reactive value updatedbalance is then calculated this way
+    updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
 
 })
 
@@ -937,7 +970,46 @@ server <- function(input, output,session) {
 
     return(betList)
   }
+
+
+
+
+
+  # VI. Outputs for UI ------------------------------------------------------
+
+  # output$general_balance <- renderText({
+  #     paste("The general balance is :", general_balance)
+  # })
+
+  output$roulette <- renderText({
+    if (!is.null(roulette$winningSlot)) {
+      paste("The winning slot is:", roulette$winningSlot$slotLanded)
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
+  # this is in order for the UI to display or updated balance.
+  output$generalbalance <- renderText({
+    if(!is.null(roulette$winningSlot)){
+      paste("My balance is actually " , updatedbalance$balance)
+    }
+    else{
+      return(invisible(NULL))
+    }
+  })
+
+
+
+
+
+
+
+
+
 }
+
+
 
 
 # IX. Run the app-----------------------------------------
