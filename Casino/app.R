@@ -489,10 +489,10 @@ ui <- fluidPage(
                       actionButton("spin", "Spin Roulette"),
                       actionButton("reset", "Reset Bets"),
 
-                      verbatimTextOutput("roulette", placeholder = FALSE),
+                      textOutput("roulette"),
 
                       # we show our balance of money
-                      verbatimTextOutput("generalbalance", placeholder = FALSE)
+                      textOutput("generalbalance")
 
 
 
@@ -713,7 +713,7 @@ server <- function(input, output,session) {
   # money to that amount.
   observeEvent(input$add ,{
     startingbalance <- input$startbalance
-    updatedbalance$balance = startingbalance
+    updatedbalance$balance = updatedbalance$balance + startingbalance
     paste("your balance is now ", updatedbalance$balance)
   })
 
@@ -835,6 +835,8 @@ server <- function(input, output,session) {
     currentBalance <- updatedbalance$balance
     # the reactive value updatedbalance is then calculated this way
     updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
+
+
 
 })
 
@@ -992,7 +994,7 @@ server <- function(input, output,session) {
   # this is in order for the UI to display or updated balance.
   output$generalbalance <- renderText({
     if(!is.null(roulette$winningSlot)){
-      paste("My balance is actually " , updatedbalance$balance)
+      paste("My balance is now " , updatedbalance$balance)
     }
     else{
       return(invisible(NULL))
