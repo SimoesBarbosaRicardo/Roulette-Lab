@@ -1,4 +1,6 @@
 
+# Notre app -----
+
 # I. bettingTable Setup ---------------------------------------------------
 # Setup of the bettingTable, dataframe that keeps track of slots on the table
 require(ggplot2)
@@ -520,7 +522,7 @@ ui <- fluidPage(
 server <- function(input, output,session) {
 
   # I. Reactive Data Frames -------------------------------------------------
-  # Store chat history, user names and colors
+  # Store user names and colors
   shared_vals <- reactiveValues(chip_color = NULL,
                                 all_colors = tolower(colors()[grepl("^[^0-9]*$", colors())]),
                                 taken_colors = NULL)
@@ -714,25 +716,14 @@ server <- function(input, output,session) {
   observeEvent(input$add ,{
     startingbalance <- input$startbalance
     updatedbalance$balance = updatedbalance$balance + startingbalance
-    paste("your balance is now ", updatedbalance$balance)
+    #paste("your balance is now ", updatedbalance$balance)
   })
+
 
 
   # click function
   selected_number <- reactiveValues()
 
-  # handle_click <- function(event){
-  #   n = nrow(clickable)-1
-  #   x <- event$x
-  #   y <- event$y
-  #
-  #   for(i in 1:n){
-  #     # here we determine if we're between the coordinates we want.
-  #     if (x > clickable[i,1] && x < clickable[i+1,1] && y > clickable[i,2] && y < clickable[i+1,2]){
-  #       selected_number(clickable[i,3])
-  #     }
-  #   }
-  # }
 
   observeEvent(input$plot_click,{
     currentBet <- isolate(bet$amount)
@@ -785,11 +776,11 @@ server <- function(input, output,session) {
     # sous forme de 1 et 0.
     roulette$winningSlot <- roulette(verbose = TRUE)
 
+    roulette$winningSlot$slotLanded
+
     # Save spin results
-    # roulette$history <- c(roulette$history, roulette$winningSlot$slotLanded)
-    # On n'utilise pas ça car on pense que c'est mieux de récupérer l'historique à
-    # l'extérieur lorsqu'on appelle une fonction stratégie. De façon à réduire le
-    # temps de calcul de cette stratégie lorsqu'on l'appelle beaucoup de fois.
+    roulette$history <- c(rep("",10),roulette$history,roulette$winningSlot$slotLanded)
+
 
     if (nrow(resultsTable$data) > 0) {
       tableOverall <- data.frame(slots = apply(resultsTable$data, 1, combineSlots),
@@ -839,6 +830,11 @@ server <- function(input, output,session) {
 
 
 })
+
+  # Reset the bet
+  observeEvent(input$reset, {
+    selectedPoints$data <- cbind(clickable[0, ], betAmount = double())
+  })
 
   # V. Helper Functions -----
 
@@ -986,6 +982,7 @@ server <- function(input, output,session) {
   output$roulette <- renderText({
     if (!is.null(roulette$winningSlot)) {
       paste("The winning slot is:", roulette$winningSlot$slotLanded)
+      paste("The history of winning slots is : ", paste(roulette$history[length(roulette$history) - 10:length(roulette$history) -1]))
     } else {
       return(invisible(NULL))
     }
@@ -993,13 +990,18 @@ server <- function(input, output,session) {
 
   # this is in order for the UI to display or updated balance.
   output$generalbalance <- renderText({
-    if(!is.null(roulette$winningSlot)){
+    # if(!is.null(roulette$winningSlot)){
       paste("My balance is now " , updatedbalance$balance)
-    }
-    else{
-      return(invisible(NULL))
-    }
+    # }
+    # else if(add_button == TRUE){
+    #   paste("My balance is now", updatedbalance$balance)
+    # }
+    # else{
+    #   return(invisible(NULL))
+    # }
+
   })
+
 
 
 
