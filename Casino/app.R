@@ -435,7 +435,63 @@ roulette <- function(verbose = FALSE) {
   # en 1 et 0.
 }
 
+# The idea of a martingale strategy is to choose an initial bet. (Normally red or black
+# or odd or even) and then when you lose, you double your bet, until you win
+# When you win you go back to your initial bet.
 
+# Where N is the number of simulations, start_amount is our balance starting amount
+# bet is the amount we bet
+# By default we're going to bet on even (It's easier that way and does not change in essence
+# the strategy. We could do it by betting on numbers, but we would have probably to simulate
+# more tries)
+
+# martingale_strategy = function(N = 1000,start_amount,bet = 10, roulette){
+#   amount = start_amount
+#   initial_bet_amount = bet
+#   num_bet = 1
+#   roulette$winningSlot$even = roulette()
+#   while(amount > 0 && num_bet < N){
+#     # bet_result = roulette$winningSlot$slotLanded
+#     if(roulette$winningSlot$even){
+#       # we win
+#       amount = amount + bet
+#       bet = initial_bet_amount
+#     }else{
+#       # we lose
+#       amount = amount - bet
+#       bet = bet * 2
+#     }
+#     num_bet = num_bet + 1
+#   }
+# }
+
+
+martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
+  amount = start_amount
+  df_amount = data.frame(start_amount,N)
+  initial_bet_amount = bet_amount
+  num_bet = 1
+  while(amount > 0 && num_bet < N) {
+    bet_result = roulette()$even
+    if(bet_result) {
+      amount = amount + bet_amount
+      bet_amount = initial_bet_amount
+      # we fill the dataframe
+      df_amount[num_bet,1] = amount
+      df_amount[num_bet,2] = num_bet
+
+    } else {
+      amount = amount - bet_amount
+      bet_amount = bet_amount * 2
+      df_amount[num_bet,1] = amount
+      df_amount[num_bet,2] = num_bet
+    }
+    num_bet = num_bet + 1
+  }
+  return(df_amount)
+  #return(data.frame(spin = 1:num_bet - 1, bet = cumsum(c(start_amount, rep(initial_bet_amount, num_bet - 2))), win = c(NA, bet_result)))
+
+}
 
 
 
@@ -507,7 +563,12 @@ ui <- fluidPage(
       # We create other panels to the main one in order to show different things.
       tabsetPanel(
         tabPanel("Roulette Table", plotOutput("rTable", click = "plot_click", width = "20%")),
-        tabPanel("TEST", plotOutput("conv"))
+        tabPanel("TEST",
+                 numericInput("num_spins", "Number of spins:", 1000, min = 1),
+                 numericInput("start_bet", "Balance:", 10, min = 1),
+                 numericInput("bet_amount", "bet amount:", 100, min = 10),
+                 actionButton("run_simulation", "Run simulation"),
+                 plotOutput("martingale_plot"))
         )
 
       )
@@ -727,8 +788,6 @@ server <- function(input, output,session) {
 
   observeEvent(input$plot_click,{
     currentBet <- isolate(bet$amount)
-
-    #click <- handle_click(input$plot_click)
 
     #this also works
     click <- nearPoints(clickable, input$plot_click, threshold = 20, maxpoints = 1)
@@ -1002,7 +1061,19 @@ server <- function(input, output,session) {
 
   })
 
-
+  # Simulation Martingale
+  # Run simulation on button click
+  observeEvent(input$run_simulation, {
+    df <- martingale_strategy(input$num_spins,input$start_bet,input$bet_amount, roulette)
+    output$martingale_plot <- renderPlot({
+      # Plot the results using ggplot2
+      ggplot(df, aes(x = N, y = start_amount)) +
+        geom_line() +
+        scale_color_manual(values = c("black", "red")) +
+        labs(x = "Spin", y = "Bet") +
+        theme_minimal()
+    })
+  })
 
 
 
