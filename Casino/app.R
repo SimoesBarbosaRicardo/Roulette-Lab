@@ -440,31 +440,10 @@ roulette <- function(verbose = FALSE) {
 # When you win you go back to your initial bet.
 
 # Where N is the number of simulations, start_amount is our balance starting amount
-# bet is the amount we bet
+# bet_amount is the amount we bet
 # By default we're going to bet on even (It's easier that way and does not change in essence
 # the strategy. We could do it by betting on numbers, but we would have probably to simulate
 # more tries)
-
-# martingale_strategy = function(N = 1000,start_amount,bet = 10, roulette){
-#   amount = start_amount
-#   initial_bet_amount = bet
-#   num_bet = 1
-#   roulette$winningSlot$even = roulette()
-#   while(amount > 0 && num_bet < N){
-#     # bet_result = roulette$winningSlot$slotLanded
-#     if(roulette$winningSlot$even){
-#       # we win
-#       amount = amount + bet
-#       bet = initial_bet_amount
-#     }else{
-#       # we lose
-#       amount = amount - bet
-#       bet = bet * 2
-#     }
-#     num_bet = num_bet + 1
-#   }
-# }
-
 
 martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
   amount = start_amount
