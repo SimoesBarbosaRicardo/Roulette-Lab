@@ -446,29 +446,37 @@ roulette <- function(verbose = FALSE) {
 # more tries)
 
 martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
-  amount = start_amount
-  df_amount = data.frame(start_amount,N)
+  df_amount = data.frame(row.names = 1:N)
   initial_bet_amount = bet_amount
-  num_bet = 1
-  while(amount > 0 && num_bet < N) {
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+ for(i in 1:N){
+   num_bet = 1
+   amount = start_amount
+   df_amount[i,1] = start_amount
+   bet_amount = initial_bet_amount
+  while(amount > 0 && num_bet < 50) {
     bet_result = roulette()$even
-    if(bet_result) {
+    if(bet_result==1) {
       amount = amount + bet_amount
-      bet_amount = initial_bet_amount
       # we fill the dataframe
-      df_amount[num_bet,1] = amount
-      df_amount[num_bet,2] = num_bet
-
+      df_amount[i,num_bet+1] = amount
+      bet_amount = initial_bet_amount
     } else {
       amount = amount - bet_amount
+      # we fill the dataframe
+      df_amount[i,num_bet+1] = amount
       bet_amount = bet_amount * 2
-      df_amount[num_bet,1] = amount
-      df_amount[num_bet,2] = num_bet
     }
+
+
     num_bet = num_bet + 1
+
   }
+ }
+
   return(df_amount)
-  #return(data.frame(spin = 1:num_bet - 1, bet = cumsum(c(start_amount, rep(initial_bet_amount, num_bet - 2))), win = c(NA, bet_result)))
 
 }
 
@@ -482,6 +490,7 @@ require(ggplot2)
 require(stringr)
 require(dplyr)
 require(data.table)
+library(tidyverse)
 
 
 
@@ -537,20 +546,18 @@ ui <- fluidPage(
     ),
     tabPanel("Statistics"),
 
-    # We create the main panel where we will be showing the roulette table.
-    mainPanel(
+
       # We create other panels to the main one in order to show different things.
       tabsetPanel(
         tabPanel("Roulette Table", plotOutput("rTable", click = "plot_click", width = "20%")),
         tabPanel("TEST",
-                 numericInput("num_spins", "Number of spins:", 1000, min = 1),
-                 numericInput("start_bet", "Balance:", 10, min = 1),
-                 numericInput("bet_amount", "bet amount:", 100, min = 10),
+                 numericInput("num_sims", "Number of simulations:", 10, min = 1),
+                 numericInput("start_bet", "Balance:", 100, min = 1),
+                 numericInput("bet_amount", "bet amount:", 10, min = 10),
                  actionButton("run_simulation", "Run simulation"),
                  plotOutput("martingale_plot"))
         )
 
-      )
     ))
 
     )
@@ -1042,18 +1049,58 @@ server <- function(input, output,session) {
 
   # Simulation Martingale
   # Run simulation on button click
-  observeEvent(input$run_simulation, {
-    df <- martingale_strategy(input$num_spins,input$start_bet,input$bet_amount, roulette)
-    output$martingale_plot <- renderPlot({
-      # Plot the results using ggplot2
-      ggplot(df, aes(x = N, y = start_amount)) +
-        geom_line() +
-        scale_color_manual(values = c("black", "red")) +
-        labs(x = "Spin", y = "Bet") +
-        theme_minimal()
-    })
-  })
+    # observeEvent(input$run_simulation, {
+    #   df <- martingale_strategy(input$num_sims, input$start_bet,input$bet_amount, roulette)
+    #
+    #   output$martingale_plot <- renderPlot({
+    #
+    #     # in order to plot our data frame, we have to factor the rows
+    #     # first we create a vector which is a sequence of the number of rows
+    #     df$row <- seq_len(nrow(df))
+    #
+    #     df$row <- as.character(df$row)
+    #
+    #     # Reshape the dataframe into a longer format
+    #     df_long <- df %>%
+    #       pivot_longer(cols = -row, names_to = "column", values_to = "value")
+    #
+    #
+    #     browser()
+    #     # Plot the values with color-coded rows
+    #     ggplot(df_long, aes(x = 1:200, y = value, color = row)) +
+    #       geom_line() +
+    #       labs(x = "Spin", y = "Bet") +
+    #       theme_minimal()
+    #   })
+    # })
 
+      observeEvent(input$run_simulation, {
+        df <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
+        output$martingale_plot <- renderPlot({
+
+          # Add a sequence column to represent the rows
+          df$row <- seq_len(nrow(df))
+
+          # Create an empty ggplot object
+          p = ggplot()+
+            labs(x = "Spins", y = "Balance")+
+            theme_minimal ()
+
+        for(i in 1:nrow(df)){
+          # Filter the dataframe for the current line
+          df_line <- filter(df, row == i)
+
+          df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
+
+          # Add the line to the plot
+          p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
+
+
+        }
+        print(p)
+      })
+
+    })
 
 
 
