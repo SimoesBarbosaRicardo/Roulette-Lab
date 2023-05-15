@@ -481,6 +481,34 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
 }
 
 
+win_rate <- function(df_amount) {
+  win_rate <- numeric(nrow(df_amount))  # Initialize win rate vector
+
+  for (j in 1:length(df_amount)) {
+    number_win <- 0
+    number_losses <- 0
+
+    for (i in 2:ncol(df_amount)) {
+      if (is.na(df_amount[j, i]) == TRUE) {
+        break
+      } else {
+        if (df_amount[j, i - 1] > df_amount[j, i]) {
+          number_losses <- number_losses + 1  # Lost
+        } else {
+          number_win <- number_win + 1  # Won
+        }
+      }
+
+      win_rate[j] <- number_win/(number_win + number_losses)  # Compute win rate at each step
+    }
+  }
+
+
+  win_rate = as.data.frame(win_rate)
+  return(win_rate)
+}
+
+
 
 
 library(shiny)
@@ -544,25 +572,36 @@ ui <- fluidPage(
 
 
     ),
-    tabPanel("Statistics"),
+    tabPanel("Statistics",
+             # Statistics inputs
+             numericInput("num_sims", "Number of simulations:", 10, min = 1),
+             numericInput("start_bet", "Balance:", 100, min = 1),
+             numericInput("bet_amount", "bet amount:", 10, min = 10),
+             actionButton("run_simulation", "Run simulation")
+    )
+           )
+    ),
+    column(7,
+           column(12,
+                  br(),
+                  h4("Win Rate Percentage"),
+                  plotOutput("win_rate_plot", height = "200px")
+           ),
+           column(12,
+                  br(),
+                  plotOutput("martingale_plot", height = "400px")
+           ),
 
 
       # We create other panels to the main one in order to show different things.
       tabsetPanel(
         tabPanel("Roulette Table", plotOutput("rTable", click = "plot_click", width = "20%")),
-        tabPanel("TEST",
-                 numericInput("num_sims", "Number of simulations:", 10, min = 1),
-                 numericInput("start_bet", "Balance:", 100, min = 1),
-                 numericInput("bet_amount", "bet amount:", 10, min = 10),
-                 actionButton("run_simulation", "Run simulation"),
-                 plotOutput("martingale_plot"))
         )
 
     ))
 
     )
 
-  )
 
 # VIII. Server-----------------------------------------
 
@@ -601,10 +640,11 @@ server <- function(input, output,session) {
 
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
 
-  # Chose the total money to allocate
-  #output$money <- renderPrint({ input$money })
+  # the dataframe that we are going to use for the plots.
+  df_amount = reactive({
+    martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
+  })
 
-  #general_balance <- output$money + general_balance
 
   init_user_color <- FALSE
 
@@ -1048,32 +1088,6 @@ server <- function(input, output,session) {
   })
 
   # Simulation Martingale
-  # Run simulation on button click
-    # observeEvent(input$run_simulation, {
-    #   df <- martingale_strategy(input$num_sims, input$start_bet,input$bet_amount, roulette)
-    #
-    #   output$martingale_plot <- renderPlot({
-    #
-    #     # in order to plot our data frame, we have to factor the rows
-    #     # first we create a vector which is a sequence of the number of rows
-    #     df$row <- seq_len(nrow(df))
-    #
-    #     df$row <- as.character(df$row)
-    #
-    #     # Reshape the dataframe into a longer format
-    #     df_long <- df %>%
-    #       pivot_longer(cols = -row, names_to = "column", values_to = "value")
-    #
-    #
-    #     browser()
-    #     # Plot the values with color-coded rows
-    #     ggplot(df_long, aes(x = 1:200, y = value, color = row)) +
-    #       geom_line() +
-    #       labs(x = "Spin", y = "Bet") +
-    #       theme_minimal()
-    #   })
-    # })
-
       observeEvent(input$run_simulation, {
         df <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
         output$martingale_plot <- renderPlot({
@@ -1084,6 +1098,7 @@ server <- function(input, output,session) {
           # Create an empty ggplot object
           p = ggplot()+
             labs(x = "Spins", y = "Balance")+
+            geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
             theme_minimal ()
 
         for(i in 1:nrow(df)){
@@ -1099,6 +1114,17 @@ server <- function(input, output,session) {
         }
         print(p)
       })
+
+        # now we plot the plot for the winrate
+        df_win_rate <- win_rate(df_amount())
+        output$win_rate_plot <- renderPlot({
+          ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
+            geom_col()+
+            scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
+            labs(x = "ID of the simulation", y = "Winrate Percentage")+
+            geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
+            theme_minimal ()
+        })
 
     })
 
