@@ -16,6 +16,18 @@ sys_sleep <- function(val, unit = c("s", "ms", "us", "ns")) {
   }
 }
 
+#To convert winning number into the right frame
+transform_numb = function(winning_number){
+  wheel_numbers <- c(17, 32, 20, 7, 11, 30, 26, 9, 28, 0, 2, 14, 35, 23, 4, 16, 33, 21, 6, 18, 31, 19, 8, 12, 29, 25, 10, 27, "00", 1, 13, 36, 24, 3, 15, 33, 22, 5)
+  wheel_numbers_char <- as.character(wheel_numbers)
+  
+  winning_number=20
+  index <- which(wheel_numbers_char == as.character(winning_number))[1]
+  return(index)
+}
+
+transform_numb()
+
 
 #Plot of the wheel
 draw_wheel <- function() {
@@ -113,10 +125,9 @@ spin_animation = function(Winning_number=10){
   
   #Base distance from origin
   distance = 1.6
-  Winning_number= 3
+  final_speed= 500 
+  nb_loops = 8
   
-  final_speed=700 
-  nb_loops = 10
   total_frames = 38*nb_loops + Winning_number
   delay = total_frames/30 #Divided by 30 otherwise delay is to0 big
   
@@ -160,7 +171,7 @@ spin_animation = function(Winning_number=10){
 
 
 
-spin_animation(total_frames)
+spin_animation(Winning_number = 1)
 
 
 
