@@ -1,10 +1,23 @@
 
 # Notre app -----
 
-# I. bettingTable Setup ---------------------------------------------------
-# Setup of the bettingTable, dataframe that keeps track of slots on the table
+# Libraries ----
 require(ggplot2)
 library(shinyjs)
+library(shiny)
+require(DT)
+require(shiny)
+require(ggplot2)
+require(stringr)
+require(dplyr)
+require(data.table)
+library(tidyverse)
+
+
+# I. bettingTable Setup ---------------------------------------------------
+# Setup of the bettingTable, dataframe that keeps track of slots on the table
+
+
 
 slotNum <- c(0, "00" , c(1:36))
 
@@ -478,9 +491,10 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
 
   }
  }
-  #browser()
+
 
   return(df_amount)
+
 
 }
 
@@ -515,15 +529,6 @@ win_rate <- function(df_amount) {
 
 
 
-library(shiny)
-require(DT)
-require(shiny)
-require(ggplot2)
-require(stringr)
-require(dplyr)
-require(data.table)
-library(tidyverse)
-
 
 
   # VII. UI-----------------------------------------
@@ -532,9 +537,10 @@ library(tidyverse)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-  tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
-    ),
+   tags$head(
+     tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
+     ),
+  #Curtain animation at the start
   shinyjs::useShinyjs(),
   div(
     id = "curtain",
@@ -544,82 +550,79 @@ ui <- fluidPage(
   div(
     id = "app-interface",
     headerPanel("American Roulette"),
-    fluidRow(
       # Sidebar with a slider and selection inputs
       # column to select the width
-      column(5,
-             tabsetPanel(
-               tabPanel("Betting",
-                        numericInput("startbalance", label = h3("Money Balance"), value = 1),
-                        actionButton("add", "add"),
+    navbarPage("Casino_name",
+               tabPanel("Roulette",
+                        fluidRow(
+                          column(4, style = "border: 1px solid black;",
+                                 numericInput("startbalance", label = h3("Money Balance"), value = 1),
+                                 actionButton("add", "add"),
 
-                        hr(),
-                        #fluidRow(column(3, verbatimTextOutput("money"))),
+                                 hr(),
+                                 #fluidRow(column(3, verbatimTextOutput("money"))),
 
-                        br(),
-                        ### Manual Betting
-                        h4("Manual Betting"),
-                        strong("Bet Amount:"),
-                        br(),
-                        # \10\25\50\100\250\ bet buttons
-                        actionButton("bet1", "$10"),
-                        actionButton("bet2", "$25"),
-                        actionButton("bet3", "$50"),
-                        actionButton("bet4", "$100"),
-                        actionButton("bet5", "$250"),
-                        br(),
-                        br(),
-                        h4("Chip Color"),
-                        selectizeInput("chipColor", "Choose chip color:",
-                                       choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
-                                       selected = "navy"),
-                        hr(),
+                                 br(),
+                                 ### Manual Betting
+                                 h4("Manual Betting"),
+                                 strong("Bet Amount:"),
+                                 br(),
+                                 # \10\25\50\100\250\ bet buttons
+                                 actionButton("bet1", "$10"),
+                                 actionButton("bet2", "$25"),
+                                 actionButton("bet3", "$50"),
+                                 actionButton("bet4", "$100"),
+                                 actionButton("bet5", "$250"),
+                                 br(),
+                                 br(),
+                                 h4("Chip Color"),
+                                 selectizeInput("chipColor", "Choose chip color:",
+                                                choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                                selected = "navy"),
+                                 hr(),
 
-                        actionButton("spin", "Spin Roulette"),
-                        actionButton("reset", "Reset Bets"),
+                                 actionButton("spin", "Spin Roulette"),
+                                 actionButton("reset", "Reset Bets"),
 
-                        textOutput("roulette"),
+                                 textOutput("roulette"),
 
-                        # we show our balance of money
-                        textOutput("generalbalance")
+                                 # we show our balance of money
+                                 textOutput("generalbalance")
+                                 ),
+                          column(4, style = "border: 1px solid black;",
+                                 img(src="72Oz.gif", fill = TRUE)
+                          ),
+                          column(4, style = "border: 1px solid black; max-width: 100%;",
+                                 plotOutput("rTable", click = "plot_click", fill = TRUE)
+                                 )
+
+                          )
                         ),
-      tabPanel("Statistics",
-               # Statistics inputs
-               numericInput("num_sims", "Number of simulations:", 10, min = 1),
-               numericInput("start_bet", "Balance:", 100, min = 1),
-               numericInput("bet_amount", "bet amount:", 10, min = 10),
-               numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
-               actionButton("run_simulation", "Run simulation")
+               tabPanel("Statistics",
+                        sidebarPanel(# Statistics inputs
+                          numericInput("num_sims", "Number of simulations:", 10, min = 1),
+                          numericInput("start_bet", "Balance:", 100, min = 1),
+                          numericInput("bet_amount", "bet amount:", 10, min = 10),
+                          numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
+                          actionButton("run_simulation", "Run simulation")),
+                        mainPanel(br(),
+                                  h4("Win Rate Percentage"),
+                                  plotOutput("win_rate_plot", height = "200px"),
+                                  br(),
+                                  plotOutput("martingale_plot", height = "400px")
+                                  )
+
+                        )
                )
-      )
-      ),
-      column(7,
-             column(12,
-                    br(),
-                    h4("Win Rate Percentage"),
-                    plotOutput("win_rate_plot", height = "200px")
-             ),
-             column(12,
-                    br(),
-                    plotOutput("martingale_plot", height = "400px")
-             ),
-
-
-        # We create other panels to the main one in order to show different things.
-        tabsetPanel(
-          tabPanel("Roulette Table", plotOutput("rTable", click = "plot_click", width = "20%")),
-          )
-
-        ))
+    )
   )
-)
 
 # VIII. Server-----------------------------------------
 
 server <- function(input, output,session) {
 
 
-  shinyjs::hide("app-interface")
+  shinyjs::hide("app-interface") #used for the curtain animation at the start
 
   # I. Reactive Data Frames -------------------------------------------------
   # Store user names and colors
@@ -804,7 +807,7 @@ server <- function(input, output,session) {
       rouletteTable
 
     }
-  }, width = 700, height = 700)
+  }, width = 500, height = 500)
 
 
   # IV. Event Observers -----------------------------------------------------
@@ -1117,6 +1120,7 @@ server <- function(input, output,session) {
             geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
             theme_minimal ()
 
+        sum_of_amount = rep(NA,10)
         for(i in 1:nrow(df)){
           # Filter the dataframe for the current line
           df_line <- filter(df, row == i)
@@ -1124,8 +1128,29 @@ server <- function(input, output,session) {
           # Add the line to the plot
           p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
 
+          # here we take out the last value of the data frame.
+          for(j in 1:input$tot_spin){
+            if(is.na(df_line_pivot[j,3]) == FALSE){
+              sum_of_amount[i]=df_line_pivot[j,3]
+            }else{
+
+            }
+          }
+
         }
+
+        sum_of_amount_unlisted = unlist(sum_of_amount)
+        tot_amount = sum(sum_of_amount_unlisted)
+        #browser()
+        p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
         print(p)
+
+        # In order to see if the strategy can generate returns. We calculate the sum of
+        # all the amounts at the end.
+
+
+
+
       })
 
         # now we plot the plot for the winrate
