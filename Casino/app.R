@@ -477,9 +477,10 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
 
   }
  }
-  #browser()
+
 
   return(df_amount)
+
 
 }
 
@@ -1104,6 +1105,7 @@ server <- function(input, output,session) {
             geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
             theme_minimal ()
 
+        sum_of_amount = rep(NA,10)
         for(i in 1:nrow(df)){
           # Filter the dataframe for the current line
           df_line <- filter(df, row == i)
@@ -1111,8 +1113,29 @@ server <- function(input, output,session) {
           # Add the line to the plot
           p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
 
+          # here we take out the last value of the data frame.
+          for(j in 1:input$tot_spin){
+            if(is.na(df_line_pivot[j,3]) == FALSE){
+              sum_of_amount[i]=df_line_pivot[j,3]
+            }else{
+
+            }
+          }
+
         }
+
+        sum_of_amount_unlisted = unlist(sum_of_amount)
+        tot_amount = sum(sum_of_amount_unlisted)
+        #browser()
+        p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
         print(p)
+
+        # In order to see if the strategy can generate returns. We calculate the sum of
+        # all the amounts at the end.
+
+
+
+
       })
 
         # now we plot the plot for the winrate
