@@ -477,7 +477,7 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
 
   }
  }
-  browser()
+  #browser()
 
   return(df_amount)
 
@@ -531,6 +531,9 @@ library(tidyverse)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
+    ),
   headerPanel("American Roulette"),
   fluidRow(
     # Sidebar with a slider and selection inputs
@@ -570,11 +573,7 @@ ui <- fluidPage(
 
                       # we show our balance of money
                       textOutput("generalbalance")
-
-
-
-
-    ),
+                      ),
     tabPanel("Statistics",
              # Statistics inputs
              numericInput("num_sims", "Number of simulations:", 10, min = 1),
@@ -582,8 +581,8 @@ ui <- fluidPage(
              numericInput("bet_amount", "bet amount:", 10, min = 10),
              numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
              actionButton("run_simulation", "Run simulation")
+             )
     )
-           )
     ),
     column(7,
            column(12,
@@ -602,9 +601,9 @@ ui <- fluidPage(
         tabPanel("Roulette Table", plotOutput("rTable", click = "plot_click", width = "20%")),
         )
 
-    ))
+      ))
 
-    )
+  )
 
 
 # VIII. Server-----------------------------------------
@@ -1121,10 +1120,10 @@ server <- function(input, output,session) {
         output$win_rate_plot <- renderPlot({
           ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
             geom_col()+
-            scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
+            scale_fill_manual(values = c("green", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
             labs(x = "ID of the simulation", y = "Winrate Percentage")+
             geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
-            theme_minimal ()
+            theme_minimal()
         })
 
     })

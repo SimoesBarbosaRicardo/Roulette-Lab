@@ -1,0 +1,118 @@
+/* Get a fancy font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap');
+
+/* Set background image */
+body {
+  background-image: url('casino_background.jpg');
+  background-repeat: repeat;
+  background-size: cover;
+}
+
+/* Set text color and font */
+body, h1, h2, h3, h4, h5, h6 {
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Adjust header style */
+header {
+  background-color: #000000;
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 36px;
+}
+
+/* Adjust sidebar style */
+.sidebar {
+  background-color: #000000;
+  padding: 20px;
+  color: #ffffff;
+}
+
+.sidebar h4 {
+  font-size: 24px;
+}
+
+.sidebar strong {
+  font-weight: bold;
+}
+
+.sidebar .bet-button {
+  background-color: #dc3545;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.sidebar .bet-button:hover {
+  background-color: #c82333;
+}
+
+.sidebar .chip-color {
+  margin-top: 20px;
+}
+
+.sidebar .spin-button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.sidebar .spin-button:hover {
+  background-color: #0056b3;
+}
+
+.sidebar .reset-button {
+  background-color: #ffc107;
+  color: #000000;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.sidebar .reset-button:hover {
+  background-color: #e0a800;
+}
+
+/* Adjust main content style */
+.main-content {
+  padding: 20px;
+}
+
+/* Adjust plot area style */
+.plot-area {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* Adjust footer style */
+footer {
+  background-color: #000000;
+  padding: 20px;
+  text-align: center;
+}
+
+footer p {
+  margin: 0;
+}
+
+/* Hide default Shiny styles */
+.shiny-input-container,
+.shiny-output-container {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
