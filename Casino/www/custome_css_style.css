@@ -3,14 +3,14 @@
 
 /* Set background image */
 body {
-  background-image: url('casino_background.jpg');
+  background-image: url('red_curtains_background.jpg');
   background-repeat: repeat;
   background-size: cover;
 }
 
 /* Set text color and font */
 body, h1, h2, h3, h4, h5, h6 {
-  color: #ffffff;
+  color: #blue;
   font-family: 'Montserrat', sans-serif;
 }
 
@@ -29,7 +29,7 @@ header h1 {
 .sidebar {
   background-color: #000000;
   padding: 20px;
-  color: #ffffff;
+  color: #blue;
 }
 
 .sidebar h4 {
@@ -42,7 +42,7 @@ header h1 {
 
 .sidebar .bet-button {
   background-color: #dc3545;
-  color: #ffffff;
+  color: #blue;
   border: none;
   border-radius: 5px;
   padding: 8px 12px;
@@ -60,7 +60,7 @@ header h1 {
 
 .sidebar .spin-button {
   background-color: #007bff;
-  color: #ffffff;
+  color: #blue;
   border: none;
   border-radius: 5px;
   padding: 8px 12px;
@@ -115,4 +115,11 @@ footer p {
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+
+#bet4
+{
+  background-color: #2de4d8; !important;
+  border-color: ; #c230c0; !important;
 }
