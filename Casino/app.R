@@ -588,13 +588,13 @@ ui <- fluidPage(
                                  # we show our balance of money
                                  textOutput("generalbalance")
                                  ),
-                          column(4, style = "border: 1px solid black; min-width: 80%; max-width: 100%;",
-                                 plotOutput("rTable", click = "plot_click", fill = TRUE)
-                                 ),
                           column(4, style = "border: 1px solid black;",
-                                 textOutput("testeststststst"),
-                                 actionButton("spin", "Spin Roulette")
+                                 img(src="72Oz.gif", fill = TRUE)
+                          ),
+                          column(4, style = "border: 1px solid black; max-width: 100%;",
+                                 plotOutput("rTable", click = "plot_click", fill = TRUE)
                                  )
+
                           )
                         ),
                tabPanel("Statistics",
@@ -806,7 +806,7 @@ server <- function(input, output,session) {
       rouletteTable
 
     }
-  })
+  }, width = 500, height = 500)
 
 
   # IV. Event Observers -----------------------------------------------------
