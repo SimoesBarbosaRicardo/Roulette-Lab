@@ -440,12 +440,14 @@ roulette <- function(verbose = FALSE) {
 # When you win you go back to your initial bet.
 
 # Where N is the number of simulations, start_amount is our balance starting amount
-# bet_amount is the amount we bet
+# bet_amount is the amount we bet, roulette is the function we've defined above and
+# tot_spin is the amount of spins per simulation (in order to have a data frame that has
+# the same number of columns)
 # By default we're going to bet on even (It's easier that way and does not change in essence
 # the strategy. We could do it by betting on numbers, but we would have probably to simulate
 # more tries)
 
-martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
+martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_spin = 50) {
   df_amount = data.frame(row.names = 1:N)
   initial_bet_amount = bet_amount
   # first we have to simulate for the strategy for "1 person"
@@ -456,7 +458,7 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
    amount = start_amount
    df_amount[i,1] = start_amount
    bet_amount = initial_bet_amount
-  while(amount > 0 && num_bet < 50) {
+  while(amount > 0 && num_bet < tot_spin) {
     bet_result = roulette()$even
     if(bet_result==1) {
       amount = amount + bet_amount
@@ -475,6 +477,7 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette) {
 
   }
  }
+  browser()
 
   return(df_amount)
 
@@ -577,6 +580,7 @@ ui <- fluidPage(
              numericInput("num_sims", "Number of simulations:", 10, min = 1),
              numericInput("start_bet", "Balance:", 100, min = 1),
              numericInput("bet_amount", "bet amount:", 10, min = 10),
+             numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
              actionButton("run_simulation", "Run simulation")
     )
            )
@@ -1087,9 +1091,9 @@ server <- function(input, output,session) {
 
   })
 
-  # Simulation Martingale
       observeEvent(input$run_simulation, {
-        df <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
+        # Simulation Martingale
+        df <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)
         output$martingale_plot <- renderPlot({
 
           # Add a sequence column to represent the rows
@@ -1104,12 +1108,9 @@ server <- function(input, output,session) {
         for(i in 1:nrow(df)){
           # Filter the dataframe for the current line
           df_line <- filter(df, row == i)
-
           df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
-
           # Add the line to the plot
           p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
-
 
         }
         print(p)
@@ -1127,10 +1128,6 @@ server <- function(input, output,session) {
         })
 
     })
-
-
-
-
 
 
 
