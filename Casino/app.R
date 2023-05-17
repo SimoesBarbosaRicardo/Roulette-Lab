@@ -1355,7 +1355,9 @@ server <- function(input, output,session) {
 
       # Create an empty ggplot object
       p = ggplot()+
-        labs(x = "Spins", y = "Balance")+
+        labs(x = "Spins", y = "Balance",
+             title = "Evolution of the Balance over the number of spins",
+             caption = "The red dotted line is the overall final balance")+
         geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
         theme_minimal ()
 
@@ -1392,6 +1394,7 @@ server <- function(input, output,session) {
         scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
         labs(x = "ID of the simulation", y = "Winrate Percentage")+
         geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
+        scale_x_continuous(breaks= 1:input$num_sims)+
         theme_minimal()
     })
 
