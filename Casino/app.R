@@ -12,6 +12,7 @@ require(stringr)
 require(dplyr)
 require(data.table)
 library(tidyverse)
+library(DescTools)
 
 library(microbenchmark)
 
@@ -465,8 +466,9 @@ roulette <- function(verbose = FALSE) {
 # the strategy. We could do it by betting on numbers, but we would have probably to simulate
 # more tries)
 
-martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_spin = 50) {
+martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
   df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
   initial_bet_amount = bet_amount
   # first we have to simulate for the strategy for "1 person"
   # then we repeat for N iterations
@@ -474,21 +476,18 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
   for(i in 1:N){
     num_bet = 1
     amount = start_amount
-    df_amount[i,1] = start_amount
+
     bet_amount = initial_bet_amount
     while(amount > 0 && num_bet < tot_spin) {
       bet_result = roulette()$even
       if(bet_result==1) {
         amount = amount + bet_amount
-        # we fill the dataframe
-        df_amount[i,num_bet+1] = amount
         bet_amount = initial_bet_amount
       } else {
         amount = amount - bet_amount
-        # we fill the dataframe
-        df_amount[i,num_bet+1] = amount
         bet_amount = bet_amount * 2
       }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
       num_bet = num_bet + 1
     }
   }
@@ -496,6 +495,49 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
 
 }
 
+
+
+fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  initial_bet_amount = bet_amount
+
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+
+
+  df_amount[,1] = start_amount
+
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    current_bet_amount = initial_bet_amount
+    fibo_counter = 1
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {
+        amount = amount + current_bet_amount
+        current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
+        #A win means we move two numbers lower in the sequence, but not lower than 1
+        if (fibo_counter < 3){
+          fibo_counter = 1
+        }
+        else {
+          fibo_counter = fibo_counter - 2
+        }
+      } else {
+        amount = amount - current_bet_amount
+        current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
+        fibo_counter = fibo_counter + 1
+
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
 
 
 win_rate <- function(df_amount) {
@@ -548,28 +590,28 @@ ui <- fluidPage(
     style = "position: absolute; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden;",
     img(src = "curtain.png", style = "object-fit: cover; width: 100%; height: 100%;", onclick = "shinyjs.hide('curtain'); shinyjs.show('app-interface')")
   ),
-  
+
   div(id = "app-interface",
       headerPanel("American Roulette"),
       # Sidebar with a slider and selection inputs
       # column to select the width
       navbarPage("Casino_name",
-                 
-                 
+
+
                  #home page
                  tabPanel("About Us",
-                          
+
                           div(class = "section_HP",
-                              
+
                               div(
                                 class = "box",
                                 tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")
                               ),
-                              
-                              
+
+
                               div(
                                 class = "content",
-                                
+
                                 div(
                                   class = "text_section_HP ",
                                   tags$h2("Introduction to the project"),
@@ -584,7 +626,7 @@ ui <- fluidPage(
                                        players but also contribute to the broader understanding of optimal strategies in the casino gaming industry.
                                        Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
                                   ),
-                                  
+
                                   tags$h2("Strategies"),
                                   tags$p("The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern."
                                   ),
@@ -596,22 +638,22 @@ ui <- fluidPage(
                               )
                           )
                  ),
-                 
-                 
-                 
-                 
-                 
-                 
-                 
+
+
+
+
+
+
+
                  tabPanel("Roulette",
                           fluidRow(
                             column(4, style = "border: 1px solid black; align=left;",
                                    numericInput("startbalance", label = h3("Money Balance"), value = 1),
                                    actionButton("add", "add"),
-                                   
+
                                    hr(),
                                    #fluidRow(column(3, verbatimTextOutput("money"))),
-                                   
+
                                    br(),
                                    ### Manual Betting
                                    h4("Manual Betting"),
@@ -630,12 +672,12 @@ ui <- fluidPage(
                                                   choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
                                                   selected = "navy"),
                                    hr(),
-                                   
+
                                    actionButton("spin", "Spin Roulette"),
                                    actionButton("reset", "Reset Bets"),
-                                   
+
                                    textOutput("roulette"),
-                                   
+
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
@@ -645,15 +687,18 @@ ui <- fluidPage(
                             column(4, style = "border: 1px solid black;  align=right; ",
                                    plotOutput("rTable", click = "plot_click", fill = TRUE)
                             )
-                            
+
                           )
                  ),
                  tabPanel("Statistics",
                           sidebarPanel(# Statistics inputs
+                            selectizeInput("selectedStratgy", "Choose a strategy:",
+                                           choices = c("Martingale", "Fibonacci system"),
+                                           selected = "Martingale"),
                             numericInput("num_sims", "Number of simulations:", 10, min = 1),
                             numericInput("start_bet", "Balance:", 100, min = 1),
-                            numericInput("bet_amount", "bet amount:", 10, min = 10),
-                            numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
+                            numericInput("bet_amount", "bet amount:", 10, min = 1),
+                            numericInput("tot_spin", "Number of spins per simulation:", 50, min = 1),
                             actionButton("run_simulation", "Run simulation")),
                           mainPanel(br(),
                                     h4("Win Rate Percentage"),
@@ -1156,13 +1201,27 @@ server <- function(input, output,session) {
   ## Ricardo:----
   observeEvent(input$run_simulation, {
     # Simulation Martingale
-    df_mart <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)
+    switch(input$selectedStratgy,
+                     "Martingale" = {df_balance <- martingale_strategy(input$num_sims,
+                                                                    input$start_bet,
+                                                                    input$bet_amount,
+                                                                    roulette,
+                                                                    input$tot_spin)},
+                     "Fibonacci system" = {df_balance <- fibonacci_strategy(input$num_sims,
+                                                                         input$start_bet,
+                                                                         input$bet_amount,
+                                                                         roulette,
+                                                                         input$tot_spin)}
+           )
+
+
+
 
     #browser()
     output$martingale_plot <- renderPlot({
 
       # Add a sequence column to represent the rows
-      df_mart$row <- seq_len(nrow(df_mart))
+      df_balance$row <- seq_len(nrow(df_balance))
 
       # Create an empty ggplot object
       p = ggplot()+
@@ -1173,7 +1232,7 @@ server <- function(input, output,session) {
       sum_of_amount = rep(NA,input$num_sims)
       for(i in 1:input$num_sims){
         # Filter the dataframe for the current line
-        df_line <- filter(df_mart, row == i)
+        df_line <- filter(df_balance, row == i)
         df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
 
         # Add the line to the plot
@@ -1196,7 +1255,7 @@ server <- function(input, output,session) {
 
     #browser()
     # now we plot the plot for the winrate
-    df_win_rate <- win_rate(df_mart)
+    df_win_rate <- win_rate(df_balance)
     output$win_rate_plot <- renderPlot({
       ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
         geom_col()+
