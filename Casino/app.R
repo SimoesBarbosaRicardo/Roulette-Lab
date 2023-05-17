@@ -466,6 +466,8 @@ roulette <- function(verbose = FALSE) {
 # the strategy. We could do it by betting on numbers, but we would have probably to simulate
 # more tries)
 
+#Also see: https://insidersbettingdigest.com/guides/the-martingale-betting-system/
+
 martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
   df_amount = data.frame(row.names = 1:N)
   df_amount[,1] = start_amount
@@ -476,14 +478,13 @@ martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
   for(i in 1:N){
     num_bet = 1
     amount = start_amount
-
     bet_amount = initial_bet_amount
     while(amount > 0 && num_bet < tot_spin) {
       bet_result = roulette()$even
-      if(bet_result==1) {
+      if(bet_result==1) {  #WIN
         amount = amount + bet_amount
         bet_amount = initial_bet_amount
-      } else {
+      } else {   #LOST
         amount = amount - bet_amount
         bet_amount = bet_amount * 2
       }
@@ -565,8 +566,11 @@ reverse_martingale_strategy_stop = function(N, start_amount,bet_amount, roulette
 
 
 
+#The strat follows this article:
+# https://insidersbettingdigest.com/guides/the-fibonacci-betting-system/
 
 fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
+
   df_amount = data.frame(row.names = 1:N)
   initial_bet_amount = bet_amount
 
@@ -584,7 +588,7 @@ fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
     fibo_counter = 1
     while(amount > 0 && num_bet < tot_spin) {
       bet_result = roulette()$even
-      if(bet_result==1) {
+      if(bet_result==1) {   #WIN
         amount = amount + current_bet_amount
         current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
         #A win means we move two numbers lower in the sequence, but not lower than 1
@@ -594,7 +598,7 @@ fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
         else {
           fibo_counter = fibo_counter - 2
         }
-      } else {
+      } else {   #LOST
         amount = amount - current_bet_amount
         current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
         fibo_counter = fibo_counter + 1
@@ -607,6 +611,43 @@ fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
   return(df_amount)
 
 }
+
+# See:
+# https://blog.betway.com/casino/roulette-strategy-101-what-is-the-dalembert-betting-system/
+
+dalembert_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {   #WIN
+        amount = amount + bet_amount
+        if (bet_amount > initial_bet_amount){   #A win means we reduce our bet_amount by 1 "unit" (or initial_bet_amount)
+          #but only if we are not already at that initial_bet_amount
+          bet_amount = bet_amount - initial_bet_amount
+        }
+      }
+      else {   #LOST
+        amount = amount - bet_amount
+        bet_amount = bet_amount + initial_bet_amount #A loss means we increase our bet_amount by 1 "unit"
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+
 
 
 win_rate <- function(df_amount) {
@@ -700,6 +741,7 @@ ui <- fluidPage(
                                   tags$p("The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern."
                                   ),
                                   tags$p("It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black."),
+
                                   tags$p("Initially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
                                       While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."
                                   )
@@ -762,7 +804,9 @@ ui <- fluidPage(
                  tabPanel("Statistics",
                           sidebarPanel(# Statistics inputs
                             selectizeInput("selectedStratgy", "Choose a strategy:",
-                                           choices = c("Martingale", "Fibonacci system", "Reverse Martingale", "Reverse Martingale stop"),
+
+                                           choices = c("Martingale", "Fibonacci system", "Reverse Martingale", "Reverse Martingale stop", "D'Alembert System"),
+
                                            selected = "Martingale"),
                             numericInput("num_sims", "Number of simulations:", 10, min = 1),
                             numericInput("start_bet", "Balance:", 100, min = 1),
@@ -1290,7 +1334,13 @@ server <- function(input, output,session) {
                                                                                        input$start_bet,
                                                                                        input$bet_amount,
                                                                                        roulette,
-                                                                                       input$tot_spin)}
+                                                                                       input$tot_spin)},
+
+                     "D'Alembert System" = {df_balance <- dalembert_strategy(input$num_sims,
+                                                                             input$start_bet,
+                                                                             input$bet_amount,
+                                                                             roulette,
+                                                                             input$tot_spin)}
 
            )
 
