@@ -538,9 +538,9 @@ win_rate <- function(df_amount) {
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-   tags$head(
-     tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
-     ),
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
+  ),
   #Curtain animation at the start
   shinyjs::useShinyjs(),
   div(
@@ -548,75 +548,123 @@ ui <- fluidPage(
     style = "position: absolute; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden;",
     img(src = "curtain.png", style = "object-fit: cover; width: 100%; height: 100%;", onclick = "shinyjs.hide('curtain'); shinyjs.show('app-interface')")
   ),
-  div(
-    id = "app-interface",
-    headerPanel("American Roulette"),
+  
+  div(id = "app-interface",
+      headerPanel("American Roulette"),
       # Sidebar with a slider and selection inputs
       # column to select the width
-    navbarPage("Casino_name",
-               tabPanel("Roulette",
-                        fluidRow(
-                          column(4, style = "border: 1px solid black;",
-                                 numericInput("startbalance", label = h3("Money Balance"), value = 1),
-                                 actionButton("add", "add"),
-
-                                 hr(),
-                                 #fluidRow(column(3, verbatimTextOutput("money"))),
-
-                                 br(),
-                                 ### Manual Betting
-                                 h4("Manual Betting"),
-                                 strong("Bet Amount:"),
-                                 br(),
-                                 # \10\25\50\100\250\ bet buttons
-                                 actionButton("bet1", "$10"),
-                                 actionButton("bet2", "$25"),
-                                 actionButton("bet3", "$50"),
-                                 actionButton("bet4", "$100"),
-                                 actionButton("bet5", "$250"),
-                                 br(),
-                                 br(),
-                                 h4("Chip Color"),
-                                 selectizeInput("chipColor", "Choose chip color:",
-                                                choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
-                                                selected = "navy"),
-                                 hr(),
-
-                                 actionButton("spin", "Spin Roulette"),
-                                 actionButton("reset", "Reset Bets"),
-
-                                 textOutput("roulette"),
-
-                                 # we show our balance of money
-                                 textOutput("generalbalance")
-                                 ),
-                          column(4, style = "border: 1px solid black;",
-                                 img(src="72Oz.gif", fill = TRUE)
-                          ),
-                          column(4, style = "border: 1px solid black; max-width: 100%;",
-                                 plotOutput("rTable", click = "plot_click", fill = TRUE)
-                                 )
-
-                          )
-                        ),
-               tabPanel("Statistics",
-                        sidebarPanel(# Statistics inputs
-                          numericInput("num_sims", "Number of simulations:", 10, min = 1),
-                          numericInput("start_bet", "Balance:", 100, min = 1),
-                          numericInput("bet_amount", "bet amount:", 10, min = 10),
-                          numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
-                          actionButton("run_simulation", "Run simulation")),
-                        mainPanel(br(),
-                                  h4("Win Rate Percentage"),
-                                  plotOutput("win_rate_plot", height = "200px"),
-                                  br(),
-                                  plotOutput("martingale_plot", height = "400px")
+      navbarPage("Casino_name",
+                 
+                 
+                 #home page
+                 tabPanel("About Us",
+                          
+                          div(class = "section_HP",
+                              
+                              div(
+                                class = "box",
+                                tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")
+                              ),
+                              
+                              
+                              div(
+                                class = "content",
+                                
+                                div(
+                                  class = "text_section_HP ",
+                                  tags$h2("Introduction to the project"),
+                                  tags$p(
+                                    "Introducing our new basic casino application! We are thrilled to share that we have developed a cutting-edge platform designed to test and analyze various strategies in order to uncover the most optimal ones."
+                                  ),
+                                  tags$p(
+                                    "Our team has invested significant time and effort into creating this innovative casino application with the goal of exploring different approaches and tactics. Through extensive research and meticulous development, we have crafted an environment that mimics the thrilling atmosphere of a real casino, enabling users to experiment and refine their strategies."
+                                  ),
+                                  tags$p(
+                                    "This application serves as a valuable tool for both experienced gamblers and newcomers alike, our application offers comprehensive analytics and statistical data, empowering users to track their progress, identify trends, and make informed decisions. The collected insights will not only benefit individual
+                                       players but also contribute to the broader understanding of optimal strategies in the casino gaming industry.
+                                       Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
+                                  ),
+                                  
+                                  tags$h2("Strategies"),
+                                  tags$p("The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern."
+                                  ),
+                                  tags$p("It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black."),
+                                  tags$p("nitially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
+                                      While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."
                                   )
-
-                        )
-               )
-    )
+                                ),
+                              )
+                          )
+                 ),
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 tabPanel("Roulette",
+                          fluidRow(
+                            column(4, style = "border: 1px solid black; align=left;",
+                                   numericInput("startbalance", label = h3("Money Balance"), value = 1),
+                                   actionButton("add", "add"),
+                                   
+                                   hr(),
+                                   #fluidRow(column(3, verbatimTextOutput("money"))),
+                                   
+                                   br(),
+                                   ### Manual Betting
+                                   h4("Manual Betting"),
+                                   strong("Bet Amount:"),
+                                   br(),
+                                   # \10\25\50\100\250\ bet buttons
+                                   actionButton("bet1", "$10"),
+                                   actionButton("bet2", "$25"),
+                                   actionButton("bet3", "$50"),
+                                   actionButton("bet4", "$100"),
+                                   actionButton("bet5", "$250"),
+                                   br(),
+                                   br(),
+                                   h4("Chip Color"),
+                                   selectizeInput("chipColor", "Choose chip color:",
+                                                  choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                                  selected = "navy"),
+                                   hr(),
+                                   
+                                   actionButton("spin", "Spin Roulette"),
+                                   actionButton("reset", "Reset Bets"),
+                                   
+                                   textOutput("roulette"),
+                                   
+                                   # we show our balance of money
+                                   textOutput("generalbalance")
+                            ),
+                            column(4, style = "border: 1px solid black; align=center; padding-top: 150px; padding-left: 120px",
+                                   img(src="72Oz.gif", fill = TRUE)
+                            ),
+                            column(4, style = "border: 1px solid black;  align=right; ",
+                                   plotOutput("rTable", click = "plot_click", fill = TRUE)
+                            )
+                            
+                          )
+                 ),
+                 tabPanel("Statistics",
+                          sidebarPanel(# Statistics inputs
+                            numericInput("num_sims", "Number of simulations:", 10, min = 1),
+                            numericInput("start_bet", "Balance:", 100, min = 1),
+                            numericInput("bet_amount", "bet amount:", 10, min = 10),
+                            numericInput("tot_spin", "Number of spins per simulation:", 50, min = 10),
+                            actionButton("run_simulation", "Run simulation")),
+                          mainPanel(br(),
+                                    h4("Win Rate Percentage"),
+                                    plotOutput("win_rate_plot", height = "200px"),
+                                    br(),
+                                    plotOutput("martingale_plot", height = "400px")
+                          )
+                 )
+      )
   )
+)
 
 # VIII. Server-----------------------------------------
 
