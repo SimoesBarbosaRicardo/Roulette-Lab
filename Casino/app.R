@@ -495,6 +495,75 @@ martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
 
 }
 
+# same logic, but we simply double our bets when we WIN
+reverse_martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {
+        amount = amount + bet_amount
+        bet_amount = bet_amount*2
+      } else {
+        amount = amount - bet_amount
+        bet_amount = initial_bet_amount
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+# We noticed that this strategy "snowballs" a lot. But in the end, we always stop playing with
+# 0 in our balance. What if we induce a stop at some point. Because of the way the casino is set up
+# we will always end up (if we play a number close to infinity) losing money and ending up
+# with a balance of 0 at the end.
+reverse_martingale_strategy_stop = function(N, start_amount,bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(amount >= N*start_amount){
+        break
+      }else{
+        if(bet_result==1) {
+          amount = amount + bet_amount
+          bet_amount = bet_amount*2
+        } else {
+          amount = amount - bet_amount
+          bet_amount = initial_bet_amount
+        }
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+
+
 
 
 fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
@@ -631,7 +700,7 @@ ui <- fluidPage(
                                   tags$p("The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern."
                                   ),
                                   tags$p("It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black."),
-                                  tags$p("nitially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
+                                  tags$p("Initially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
                                       While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."
                                   )
                                 ),
@@ -693,7 +762,7 @@ ui <- fluidPage(
                  tabPanel("Statistics",
                           sidebarPanel(# Statistics inputs
                             selectizeInput("selectedStratgy", "Choose a strategy:",
-                                           choices = c("Martingale", "Fibonacci system"),
+                                           choices = c("Martingale", "Fibonacci system", "Reverse Martingale", "Reverse Martingale stop"),
                                            selected = "Martingale"),
                             numericInput("num_sims", "Number of simulations:", 10, min = 1),
                             numericInput("start_bet", "Balance:", 100, min = 1),
@@ -1211,7 +1280,18 @@ server <- function(input, output,session) {
                                                                          input$start_bet,
                                                                          input$bet_amount,
                                                                          roulette,
-                                                                         input$tot_spin)}
+                                                                         input$tot_spin)},
+                     "Reverse Martingale" = {df_balance <- reverse_martingale_strategy(input$num_sims,
+                                                                       input$start_bet,
+                                                                       input$bet_amount,
+                                                                       roulette,
+                                                                       input$tot_spin)},
+                     "Reverse Martingale stop" = {df_balance <- reverse_martingale_strategy_stop(input$num_sims,
+                                                                                       input$start_bet,
+                                                                                       input$bet_amount,
+                                                                                       roulette,
+                                                                                       input$tot_spin)}
+
            )
 
 
