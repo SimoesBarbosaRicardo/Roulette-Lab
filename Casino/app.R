@@ -13,6 +13,8 @@ require(dplyr)
 require(data.table)
 library(tidyverse)
 
+library(microbenchmark)
+
 
 # I. bettingTable Setup ---------------------------------------------------
 # Setup of the bettingTable, dataframe that keeps track of slots on the table
@@ -423,8 +425,8 @@ roulette <- function(verbose = FALSE) {
                      6, 21, 33, 16, 4, 23, 35, 14, 2)
 
   slotLanded <- sample(possibleSlots, 1)
-  if (verbose)
-    cat("Landed on:", slotLanded, "\n")
+  if (verbose){cat("Landed on:", slotLanded, "\n")}
+
 
   tableIndex <- which(bettingTable$slotNum == slotLanded)
   #ce which permet d'assigner à tableIndex l'élément ligne de bettingTable dont le chiffre de soltNum est le meme
@@ -449,6 +451,8 @@ roulette <- function(verbose = FALSE) {
   # en 1 et 0.
 }
 
+
+
 # The idea of a martingale strategy is to choose an initial bet. (Normally red or black
 # or odd or even) and then when you lose, you double your bet, until you win
 # When you win you go back to your initial bet.
@@ -467,52 +471,53 @@ martingale_strategy = function(N = 1000, start_amount,bet_amount, roulette, tot_
   # first we have to simulate for the strategy for "1 person"
   # then we repeat for N iterations
   # we first fill the dataframe for simulation 1
- for(i in 1:N){
-   num_bet = 1
-   amount = start_amount
-   df_amount[i,1] = start_amount
-   bet_amount = initial_bet_amount
-  while(amount > 0 && num_bet < tot_spin) {
-    bet_result = roulette()$even
-    if(bet_result==1) {
-      amount = amount + bet_amount
-      # we fill the dataframe
-      df_amount[i,num_bet+1] = amount
-      bet_amount = initial_bet_amount
-    } else {
-      amount = amount - bet_amount
-      # we fill the dataframe
-      df_amount[i,num_bet+1] = amount
-      bet_amount = bet_amount * 2
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    df_amount[i,1] = start_amount
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {
+        amount = amount + bet_amount
+        # we fill the dataframe
+        df_amount[i,num_bet+1] = amount
+        bet_amount = initial_bet_amount
+      } else {
+        amount = amount - bet_amount
+        # we fill the dataframe
+        df_amount[i,num_bet+1] = amount
+        bet_amount = bet_amount * 2
+      }
+      num_bet = num_bet + 1
     }
-
-
-    num_bet = num_bet + 1
-
   }
- }
-
-
   return(df_amount)
 
-
 }
+
 
 
 win_rate <- function(df_amount) {
   win_rate <- numeric(nrow(df_amount))  # Initialize win rate vector
 
-  for (j in 1:length(df_amount)) {
+  condition1 <- is.na(df_amount)  #compute a condition matrix for the next if
+
+
+  for (j in 1:nrow(df_amount)) {
     number_win <- 0
     number_losses <- 0
 
+
     for (i in 2:ncol(df_amount)) {
-      if (is.na(df_amount[j, i]) == TRUE) {
+      if (condition1[j,i]) {
         break
-      } else {
+      }
+      else {
         if (df_amount[j, i - 1] > df_amount[j, i]) {
           number_losses <- number_losses + 1  # Lost
-        } else {
+        }
+        else {
           number_win <- number_win + 1  # Won
         }
       }
@@ -522,12 +527,8 @@ win_rate <- function(df_amount) {
   }
 
 
-  win_rate = as.data.frame(win_rate)
-  return(win_rate)
+  return(as.data.frame(win_rate))
 }
-
-
-
 
 
 
@@ -658,10 +659,11 @@ server <- function(input, output,session) {
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
 
   # the dataframe that we are going to use for the plots.
-  df_amount = reactive({
-    martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
-  })
+  # df_amount = reactive({
+  #   martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
+  # })
 
+  #browser()
 
   init_user_color <- FALSE
 
@@ -930,10 +932,7 @@ server <- function(input, output,session) {
     currentBalance <- updatedbalance$balance
     # the reactive value updatedbalance is then calculated this way
     updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
-
-
-
-})
+    })
 
   # Reset the bet
   observeEvent(input$reset, {
@@ -1106,72 +1105,76 @@ server <- function(input, output,session) {
 
   })
 
-      observeEvent(input$run_simulation, {
-        # Simulation Martingale
-        df <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)
-        output$martingale_plot <- renderPlot({
+  ## Ricardo:----
+  observeEvent(input$run_simulation, {
+    # Simulation Martingale
+    df_mart <- martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)
 
-          # Add a sequence column to represent the rows
-          df$row <- seq_len(nrow(df))
+    #browser()
+    output$martingale_plot <- renderPlot({
 
-          # Create an empty ggplot object
-          p = ggplot()+
-            labs(x = "Spins", y = "Balance")+
-            geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
-            theme_minimal ()
+      # Add a sequence column to represent the rows
+      df_mart$row <- seq_len(nrow(df_mart))
 
-        sum_of_amount = rep(NA,10)
-        for(i in 1:nrow(df)){
-          # Filter the dataframe for the current line
-          df_line <- filter(df, row == i)
-          df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
-          # Add the line to the plot
-          p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
+      # Create an empty ggplot object
+      p = ggplot()+
+        labs(x = "Spins", y = "Balance")+
+        geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
+        theme_minimal ()
 
-          # here we take out the last value of the data frame.
-          for(j in 1:input$tot_spin){
-            if(is.na(df_line_pivot[j,3]) == FALSE){
-              sum_of_amount[i]=df_line_pivot[j,3]
-            }else{
+      sum_of_amount = rep(NA,input$num_sims)
+      for(i in 1:input$num_sims){
+        # Filter the dataframe for the current line
+        df_line <- filter(df_mart, row == i)
+        df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
 
-            }
-          }
+        # Add the line to the plot
+        p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
 
-        }
+        #Store the final balance at each iteration
+        sum_of_amount[i] = tail(na.omit(df_line_pivot[,3]), 1)
+      }
 
-        sum_of_amount_unlisted = unlist(sum_of_amount)
-        tot_amount = sum(sum_of_amount_unlisted)
-        #browser()
-        p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
-        print(p)
+      # In order to see if the strategy can generate returns. We calculate the sum of
+      # all the final balances at the end.
+      sum_of_amount_unlisted = unlist(sum_of_amount)
+      tot_amount = sum(sum_of_amount_unlisted)
+      #browser()
+      p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
+      print(p)
 
-        # In order to see if the strategy can generate returns. We calculate the sum of
-        # all the amounts at the end.
-
-
-
-
-      })
-
-        # now we plot the plot for the winrate
-        df_win_rate <- win_rate(df_amount())
-        output$win_rate_plot <- renderPlot({
-          ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
-            geom_col()+
-            scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
-            labs(x = "ID of the simulation", y = "Winrate Percentage")+
-            geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
-            theme_minimal()
-        })
 
     })
 
+    #browser()
+    # now we plot the plot for the winrate
+    df_win_rate <- win_rate(df_mart)
+    output$win_rate_plot <- renderPlot({
+      ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
+        geom_col()+
+        scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
+        labs(x = "ID of the simulation", y = "Winrate Percentage")+
+        geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
+        theme_minimal()
+    })
 
+  })
+
+
+
+  # observeEvent(input$run_simulation, {
+  #   result <- microbenchmark(
+  #     {martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)},
+  #     {martingale_strategy2(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)},
+  #     times = 50  # Number of times to repeat the measurement
+  #   )
+  #
+  #   # Access the results of microbenchmark
+  #   print(result)
+  #
+  # })
 
 }
-
-
-
 
 # IX. Run the app-----------------------------------------
 
