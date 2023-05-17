@@ -468,7 +468,7 @@ roulette <- function(verbose = FALSE) {
 
 #Also see: https://insidersbettingdigest.com/guides/the-martingale-betting-system/
 
-martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
+martingale_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
   df_amount = data.frame(row.names = 1:N)
   df_amount[,1] = start_amount
   initial_bet_amount = bet_amount
@@ -497,7 +497,7 @@ martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
 }
 
 # same logic, but we simply double our bets when we WIN
-reverse_martingale_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
+reverse_martingale_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
   df_amount = data.frame(row.names = 1:N)
   df_amount[,1] = start_amount
   initial_bet_amount = bet_amount
@@ -530,7 +530,7 @@ reverse_martingale_strategy = function(N, start_amount,bet_amount, roulette, tot
 # 0 in our balance. What if we induce a stop at some point. Because of the way the casino is set up
 # we will always end up (if we play a number close to infinity) losing money and ending up
 # with a balance of 0 at the end.
-reverse_martingale_strategy_stop = function(N, start_amount,bet_amount, roulette, tot_spin) {
+reverse_martingale_strategy_stop = function(N, start_amount, bet_amount, roulette, tot_spin) {
   df_amount = data.frame(row.names = 1:N)
   df_amount[,1] = start_amount
   initial_bet_amount = bet_amount
@@ -540,13 +540,13 @@ reverse_martingale_strategy_stop = function(N, start_amount,bet_amount, roulette
   for(i in 1:N){
     num_bet = 1
     amount = start_amount
-
     bet_amount = initial_bet_amount
     while(amount > 0 && num_bet < tot_spin) {
       bet_result = roulette()$even
       if(amount >= N*start_amount){
         break
-      }else{
+      }
+      else{
         if(bet_result==1) {
           amount = amount + bet_amount
           bet_amount = bet_amount*2
@@ -690,10 +690,11 @@ win_rate <- function(df_amount) {
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  #Link to .css:
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
   ),
-  #Curtain animation at the start
+  #Curtain animation at the start:
   shinyjs::useShinyjs(),
   div(
     id = "curtain",
@@ -701,6 +702,7 @@ ui <- fluidPage(
     img(src = "curtain.png", style = "object-fit: cover; width: 100%; height: 100%;", onclick = "shinyjs.hide('curtain'); shinyjs.show('app-interface')")
   ),
 
+  #Now show the actual app:
   div(id = "app-interface",
       headerPanel("American Roulette"),
       # Sidebar with a slider and selection inputs
@@ -708,7 +710,7 @@ ui <- fluidPage(
       navbarPage("Casino_name",
 
 
-                 #home page
+                 #About Us page
                  tabPanel("About Us",
 
                           div(class = "section_HP",
@@ -755,16 +757,14 @@ ui <- fluidPage(
 
 
 
-
+                 #Roulette page
                  tabPanel("Roulette",
                           fluidRow(
-                            column(4, style = "border: 1px solid black; align=left;",
+                            #Roulette inputs
+                            column(4, style = "align=left;",
                                    numericInput("startbalance", label = h3("Money Balance"), value = 1),
                                    actionButton("add", "add"),
-
                                    hr(),
-                                   #fluidRow(column(3, verbatimTextOutput("money"))),
-
                                    br(),
                                    ### Manual Betting
                                    h4("Manual Betting"),
@@ -783,26 +783,35 @@ ui <- fluidPage(
                                                   choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
                                                   selected = "navy"),
                                    hr(),
-
                                    actionButton("spin", "Spin Roulette"),
                                    actionButton("reset", "Reset Bets"),
-
                                    textOutput("roulette"),
-
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
-                            column(4, style = "border: 1px solid black; align=center; padding-top: 150px; padding-left: 120px",
-                                   img(src="72Oz.gif", fill = TRUE)
+                            #Roulette gifs:
+                            column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                                   div(style = "height: 100%; display: flex; align-items: center;",
+                                       img(src = "Numero 20.gif", style = "max-width: 100%; max-height: 100%; margin: auto;")
+                                   )
                             ),
-                            column(4, style = "border: 1px solid black;  align=right; ",
-                                   plotOutput("rTable", click = "plot_click", fill = TRUE)
+                            #Roulette table:
+                            column(4, style = "text-align: center; padding-top: 0px;",
+                                   div(style = "height: 100%; display: flex; align-items: center; justify-content: flex-start;",
+                                       plotOutput("rTable", click = "plot_click", height = "750px", width = "1000px")
+                                   )
                             )
 
-                          )
+
+
+                        )
                  ),
+
+                 #Statistics page
                  tabPanel("Statistics",
-                          sidebarPanel(# Statistics inputs
+
+                          # Statistics inputs:
+                          sidebarPanel(
                             selectizeInput("selectedStratgy", "Choose a strategy:",
 
                                            choices = c("Martingale", "Fibonacci system", "Reverse Martingale", "Reverse Martingale stop", "D'Alembert System"),
@@ -813,6 +822,8 @@ ui <- fluidPage(
                             numericInput("bet_amount", "bet amount:", 10, min = 1),
                             numericInput("tot_spin", "Number of spins per simulation:", 50, min = 1),
                             actionButton("run_simulation", "Run simulation")),
+
+                          #Graphs
                           mainPanel(br(),
                                     h4("Win Rate Percentage"),
                                     plotOutput("win_rate_plot", height = "200px"),
@@ -954,7 +965,7 @@ server <- function(input, output,session) {
   })
 
 
-  # III. Plots ---------------------------------------------------------------
+  # III. Table Plot ---------------------------------------------------------------
   # Roulette table
   output$rTable <- renderPlot({
     rouletteTable <- ggplot() +
@@ -990,7 +1001,7 @@ server <- function(input, output,session) {
       annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
                label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
       # show all clickable points
-      # geom_point(data = clickable, aes(x=x, y=y)) +
+      #geom_point(data = clickable, aes(x=x, y=y)) +
       # Bets are drawn on the table here
       geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
                  colour = "dimgray", size = 12) +
@@ -1002,6 +1013,10 @@ server <- function(input, output,session) {
       theme_bw() +
       ditch_the_axes
 
+
+    filename <- "rTable_plot.png"
+    ggsave(filename, plot = rouletteTable, dpi = 300)
+
     #print(selectedPoints$data)
     #print(nrow(selectedPoints$data))
 
@@ -1011,11 +1026,13 @@ server <- function(input, output,session) {
                  color = contrast_color(selectedPoints$data$user_color), size = 4)
 
       rouletteTable
-    } else {
+    }
+    else {
       rouletteTable
 
     }
-  }, width = 500, height = 500)
+
+  })
 
 
   # IV. Event Observers -----------------------------------------------------
