@@ -13,9 +13,8 @@ require(dplyr)
 require(data.table)
 library(tidyverse)
 library(DescTools)
-
 library(microbenchmark)
-
+library(devtools)
 
 # I. bettingTable Setup ---------------------------------------------------
 # Setup of the bettingTable, dataframe that keeps track of slots on the table
@@ -864,7 +863,9 @@ ui <- fluidPage(
                             #Roulette gifs:
 
                             column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                                   shinyjs::useShinyjs(),
                                    actionButton("spin", "Spin Roulette"),
+                                   tags$audio(id = "sound", src = "Roulette_Wheel.wav"),
                                    #div(style = "height: 100%; display: flex; align-items: center;",
                                        #img(src = "roulette_display", style = "max-width: 100%; max-height: 100%; margin: auto;")
                                    uiOutput("gifDisplay")
@@ -953,7 +954,7 @@ server <- function(input, output,session) {
 
   roulette_display <- reactiveValues(gif = "")
 
-  roulette_display$gif = "numero_00.gif"
+  roulette_display$gif = "photo_roulette.png"
 
   # the dataframe that we are going to use for the plots.
   # df_amount = reactive({
@@ -1122,6 +1123,7 @@ server <- function(input, output,session) {
 
   ## D. Spin the wheel------
   observeEvent(input$spin, {
+    runjs("document.getElementById('sound').play();")
 
     # save the bets for results tables
     resultsTable$data <- selectedPoints$data
@@ -1235,6 +1237,7 @@ server <- function(input, output,session) {
                               "36" = "numero_36.gif"
 
                               )
+
 
   })
 
