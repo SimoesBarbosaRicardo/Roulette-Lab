@@ -506,7 +506,6 @@ roulette <- function(verbose = FALSE) {
   # appartenance aux différents types de bets
   # e.g. le 28 est noir, pair etc.
 
-  browser()
 
   return(list(slotLanded = slotLanded,
               color = bettingTable$color[tableIndex],
@@ -866,9 +865,10 @@ ui <- fluidPage(
 
                             column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    actionButton("spin", "Spin Roulette"),
-                                   div(style = "height: 100%; display: flex; align-items: center;",
-                                       img(src = "Numero 20.gif", style = "max-width: 100%; max-height: 100%; margin: auto;")
-                                   )
+                                   #div(style = "height: 100%; display: flex; align-items: center;",
+                                       #img(src = "roulette_display", style = "max-width: 100%; max-height: 100%; margin: auto;")
+                                   uiOutput("gifDisplay")
+
                             ),
                             #Roulette table:
                             column(4, style = "border: 1px solid black; text-align: center; padding-top: 0px;",
@@ -950,6 +950,10 @@ server <- function(input, output,session) {
 
 
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
+
+  roulette_display <- reactiveValues(gif = "")
+
+  roulette_display$gif = "numero_00.gif"
 
   # the dataframe that we are going to use for the plots.
   # df_amount = reactive({
@@ -1188,6 +1192,50 @@ server <- function(input, output,session) {
     currentBalance <- updatedbalance$balance
     # the reactive value updatedbalance is then calculated this way
     updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
+
+
+    roulette_display$gif = switch(roulette$winningSlot$slotLanded,
+                              "0" = "numero_0.gif",
+                              "00" = "numero_00.gif",
+                              "1" = "numero_1.gif",
+                              "2" = "numero_2.gif",
+                              "3" = "numero_3.gif",
+                              "4" = "numero_4.gif",
+                              "5" = "numero_5.gif",
+                              "6" = "numero_6.gif",
+                              "7" = "numero_7.gif",
+                              "8" = "numero_8.gif",
+                              "9" = "numero_9.gif",
+                              "10" = "numero_10.gif",
+                              "11" = "numero_11.gif",
+                              "12" = "numero_12.gif",
+                              "13" = "numero_13.gif",
+                              "14" = "numero_14.gif",
+                              "15" = "numero_15.gif",
+                              "16" = "numero_16.gif",
+                              "17" = "numero_17.gif",
+                              "18" = "numero_18.gif",
+                              "19" = "numero_19.gif",
+                              "20" = "numero_20.gif",
+                              "21" = "numero_21.gif",
+                              "22" = "numero_22.gif",
+                              "23" = "numero_23.gif",
+                              "24" = "numero_24.gif",
+                              "25" = "numero_25.gif",
+                              "26" = "numero_26.gif",
+                              "27" = "numero_27.gif",
+                              "28" = "numero_28.gif",
+                              "29" = "numero_29.gif",
+                              "30" = "numero_30.gif",
+                              "31" = "numero_31.gif",
+                              "32" = "numero_32.gif",
+                              "33" = "numero_33.gif",
+                              "34" = "numero_34.gif",
+                              "35" = "numero_35.gif",
+                              "36" = "numero_36.gif"
+
+                              )
+
   })
 
   # Reset the bet
@@ -1314,6 +1362,10 @@ server <- function(input, output,session) {
       # Si gagné, on extrait ce qui est gagné du string et on le transforme en nombre.
     }
   }
+
+
+
+
 
   combineSlots <- function(row) {
     # Take the betting columns out
@@ -1484,6 +1536,16 @@ server <- function(input, output,session) {
     })
 
   })
+
+
+  ## Render for the gif of the roulette
+  output$gifDisplay <- renderUI({
+    gifFilename = roulette_display$gif
+    if (!is.null(gifFilename)) {
+      tags$img(src = gifFilename, width = "100%", height = "auto")
+    }
+  })
+
 
 
 
