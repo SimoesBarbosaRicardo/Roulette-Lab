@@ -505,6 +505,9 @@ roulette <- function(verbose = FALSE) {
   # Ce return nous renvoie une liste contenant le numéro gagnant ainsi que sont
   # appartenance aux différents types de bets
   # e.g. le 28 est noir, pair etc.
+
+  browser()
+
   return(list(slotLanded = slotLanded,
               color = bettingTable$color[tableIndex],
               even = bettingTable$even[tableIndex],
