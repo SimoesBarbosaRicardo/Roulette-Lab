@@ -865,7 +865,7 @@ ui <- fluidPage(
                             column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    shinyjs::useShinyjs(),
                                    actionButton("spin", "Spin Roulette"),
-                                   tags$audio(id = "sound", src = "Roulette_Wheel.wav"),
+                                   tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
                                    #div(style = "height: 100%; display: flex; align-items: center;",
                                        #img(src = "roulette_display", style = "max-width: 100%; max-height: 100%; margin: auto;")
                                    uiOutput("gifDisplay")
