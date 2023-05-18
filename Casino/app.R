@@ -829,7 +829,7 @@ ui <- fluidPage(
                  tabPanel("Roulette",
                           fluidRow(
                             #Roulette inputs
-                            column(4, style = "align=left;",
+                            column(4, style = "border: 1px solid black; align=left;",
                                    numericInput("startbalance", label = h3("Money Balance"), value = 1),
                                    actionButton("add", "add"),
                                    hr(),
@@ -854,20 +854,21 @@ ui <- fluidPage(
 
 
                                    textOutput("rouletteWinningNumber"),
+                                   textOutput("rouletteHistoryText"),
                                    textOutput("rouletteHistory"),
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
                             #Roulette gifs:
 
-                            column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                            column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    actionButton("spin", "Spin Roulette"),
                                    div(style = "height: 100%; display: flex; align-items: center;",
                                        img(src = "Numero 20.gif", style = "max-width: 100%; max-height: 100%; margin: auto;")
                                    )
                             ),
                             #Roulette table:
-                            column(4, style = "text-align: center; padding-top: 0px;",
+                            column(4, style = "border: 1px solid black; text-align: center; padding-top: 0px;",
                                    actionButton("reset", "Reset Bets"),
                                    div(style = "height: 100%; display: flex; align-items: center; justify-content: flex-start;",
                                        plotOutput("rTable", click = "plot_click", height = "750px", width = "1000px")
@@ -1344,14 +1345,27 @@ server <- function(input, output,session) {
     }
   })
 
+
+
   #For the roulette history of the last 10 numbers
-  output$rouletteHistory <- renderText({
+  output$rouletteHistoryText <- renderText({
     if (!is.null(roulette$winningSlot)) {
-      paste("The history of winning slots is:", paste(roulette$history, collapse = "-"))
+      paste("The history of winning slots is:")
     } else {
       return(invisible(NULL))
     }
   })
+
+
+  #For the roulette history of the last 10 numbers
+  output$rouletteHistory <- renderText({
+    if (!is.null(roulette$winningSlot)) {
+      paste(paste(roulette$history, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
 
 
   # this is in order for the UI to display or updated balance.
@@ -1370,18 +1384,21 @@ server <- function(input, output,session) {
 
   ## Strategy graphs:----
   observeEvent(input$run_simulation, {
-    # Simulation Martingale
+
+    #Strategy selection
     switch(input$selectedStratgy,
                      "Martingale" = {df_balance <- martingale_strategy(input$num_sims,
                                                                     input$start_bet,
                                                                     input$bet_amount,
                                                                     roulette,
-                                                                    input$tot_spin)},
+                                                                    input$tot_spin)
+                     text1 = "fgbdkfhgbkf"},
                      "Fibonacci system" = {df_balance <- fibonacci_strategy(input$num_sims,
                                                                          input$start_bet,
                                                                          input$bet_amount,
                                                                          roulette,
-                                                                         input$tot_spin)},
+                                                                         input$tot_spin)
+                     text1 = "dkjfbgkfj"},
                      "Reverse Martingale" = {df_balance <- reverse_martingale_strategy(input$num_sims,
                                                                        input$start_bet,
                                                                        input$bet_amount,
@@ -1403,8 +1420,10 @@ server <- function(input, output,session) {
 
 
 
+    output$textstrategy <- renderText({text1}) #+ ajotuer la textOutput dans UI
 
     #browser()
+    #Bottom plot
     output$martingale_plot <- renderPlot({
 
       # Add a sequence column to represent the rows
@@ -1442,7 +1461,7 @@ server <- function(input, output,session) {
 
     })
 
-    #browser()
+    #Top plot
     # now we plot the plot for the winrate
     df_win_rate <- win_rate(df_balance)
     # we calculate the overall winrate
