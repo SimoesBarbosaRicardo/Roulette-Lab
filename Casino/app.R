@@ -898,14 +898,19 @@ ui <- fluidPage(
                             numericInput("start_bet", "Balance:", 100, min = 1),
                             numericInput("bet_amount", "bet amount:", 10, min = 1),
                             numericInput("tot_spin", "Number of spins per simulation:", 50, min = 1),
-                            actionButton("run_simulation", "Run simulation")),
+                            actionButton("run_simulation", "Run simulation")
+
+                            ),
 
                           #Graphs
                           mainPanel(br(),
                                     h4("Win Rate Percentage"),
                                     plotOutput("win_rate_plot", height = "200px"),
                                     br(),
-                                    plotOutput("martingale_plot", height = "400px")
+                                    plotOutput("martingale_plot", height = "400px"),
+                                    br(),
+                                    textOutput("textstrategy")
+
                           )
                  )
       )
@@ -1450,7 +1455,10 @@ server <- function(input, output,session) {
                                                                     input$bet_amount,
                                                                     roulette,
                                                                     input$tot_spin)
-                     text1 = "fgbdkfhgbkf"},
+                     text1 = "The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern.
+                     It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black.
+                     Initially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
+                                      While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."},
                      "Fibonacci system" = {df_balance <- fibonacci_strategy(input$num_sims,
                                                                          input$start_bet,
                                                                          input$bet_amount,
