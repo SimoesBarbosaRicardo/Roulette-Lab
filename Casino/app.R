@@ -1041,79 +1041,11 @@ server <- function(input, output,session) {
 
   # III. Table Plot ---------------------------------------------------------------
   # Roulette table
-  # output$rTable <- renderPlot({
-  #   rouletteTable <- ggplot() +
-  #     geom_tile(data = df, aes(x, y, fill = factor(z), color = factor(z)), size = 1.5) +
-  #     geom_polygon(data = twoToOne1, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = twoToOne2, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = twoToOne3, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = oneToEighteenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = redSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = evenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = oddSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = blackSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = thirdTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = secondTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = firstTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = ninteenThirtysixSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-  #     geom_polygon(data = zeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
-  #     geom_polygon(data = doubleZeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
-  #     scale_fill_manual(values = cols) +
-  #     scale_color_manual(values = colsTwo) +
-  #     # 1-3: white circles; 4: transparent
-  #     #geom_circle(aes(x0=c(df$x,0.5, 3.5, columnBets$x, splitBets$x, dozenBets$x,
-  #     # outsideBets$x, quadBets$x, lineBets$x, streetBets$x, trioBets$x, topLineBets$x), y0=c(df$y, 23.9, 23.9, columnBets$y,
-  #     # splitBets$y, dozenBets$y, outsideBets$y, quadBets$y, lineBets$y, streetBets$y, trioBets$y, topLineBets$y), r=.7, color =
-  #     # factor('4'))) +
-  #     annotate("text", x = df$x, y = df$y, label = annotationLabels, color = "white") +
-  #     annotate("text", x = zerosAnnotationCoords$x, y = zerosAnnotationCoords$y, label = c("0", "00"),
-  #              color = "white") +
-  #     annotate("text", x = columnAnnotationCoords$x, y = columnAnnotationCoords$y, label = "2:1",
-  #              size = 3.5, color = "white") +
-  #     annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
-  #              color = "white", angle = -90, size = 5) +
-  #     annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
-  #              label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
-  #     # show all clickable points
-  #     #geom_point(data = clickable, aes(x=x, y=y)) +
-  #     # Bets are drawn on the table here
-  #     geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
-  #                colour = "dimgray", size = 12) +
-  #     geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
-  #                colour = selectedPoints$data$user_color, size = 9) +
-  #     # annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
-  #     #          color = contrast_color(selectedPoints$data$user_color), size = 4) +
-  #     coord_equal() +
-  #     theme_bw() +
-  #     ditch_the_axes
-  #
-  #
-  #   #To save an image of the plot for callibration:
-  #   #filename <- "rTable_plot.png"
-  #   #ggsave(filename, plot = rouletteTable, dpi = 300)
-  #
-  #   #print(selectedPoints$data)
-  #   #print(nrow(selectedPoints$data))
-  #
-  #
-  #   if (nrow(selectedPoints$data) > 0) {
-  #     rouletteTable <- rouletteTable +
-  #       annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
-  #                color = contrast_color(selectedPoints$data$user_color), size = 4)
-  #
-  #     rouletteTable
-  #   }
-  #   else {
-  #     rouletteTable
-  #
-  #   }
-  #
-  # })
-
   output$rTable <- renderPlot({
+    #Render the table
     rouletteTable <- renderTable()
 
-
+    #Render the chips
     if (!is.null(selectedPoints$data) && nrow(selectedPoints$data) > 0) {
       rouletteTable <- renderChips(rouletteTable, selectedPoints$data)
     }
@@ -1214,8 +1146,8 @@ server <- function(input, output,session) {
 
       #print("results table")
       #print(resultsTable$data) it prints what is betted on
-      print("table_overall")
-      print(tableOverall)
+      #print("table_overall")
+      #print(tableOverall)
 
 
       # Grab the bets and sum the bet outcomes
@@ -1223,12 +1155,9 @@ server <- function(input, output,session) {
         data.frame(outcome = apply(tableOverall, 1, computeTotal))
         }
       else{
+        #In case no bet is made:
         data.frame(outcome = NULL,stringsAsFactors = FALSE)
         }
-
-
-      print("bet_results")
-      print(bet_results[[1]])
 
       #this is the same thing as total above.
       #   manualTotals <- ifelse(nrow(tableOverall[tableOverall$manualBet == TRUE, ]) > 0,
@@ -1241,6 +1170,7 @@ server <- function(input, output,session) {
 
     }
     else{
+      #In case no bet is made:
       bet_results <- data.frame(outcome = NULL,stringsAsFactors = FALSE)
     }
 
@@ -1404,24 +1334,24 @@ server <- function(input, output,session) {
   #     paste("The general balance is :", general_balance)
   # })
 
+  # For the winning number
   output$rouletteWinningNumber <- renderText({
     if (!is.null(roulette$winningSlot)) {
-      paste("The winning slot is:", roulette$winningSlot$slotLanded)
-    } else {
+      paste("The winning number is:", paste(roulette$winningSlot$slotLanded, collapse = ""))
+    }
+    else {
       return(invisible(NULL))
     }
-
   })
+
+  #For the roulette history of the last 10 numbers
   output$rouletteHistory <- renderText({
     if (!is.null(roulette$winningSlot)) {
       paste("The history of winning slots is:", paste(roulette$history, collapse = "-"))
     } else {
       return(invisible(NULL))
     }
-
   })
-
-
 
 
   # this is in order for the UI to display or updated balance.
@@ -1438,7 +1368,7 @@ server <- function(input, output,session) {
 
   })
 
-  ## Ricardo:----
+  ## Strategy graphs:----
   observeEvent(input$run_simulation, {
     # Simulation Martingale
     switch(input$selectedStratgy,

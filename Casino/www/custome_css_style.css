@@ -131,17 +131,17 @@ footer p {
 /* HHOME PAGE */
 .section_HP{
   min-width: 900px;
-  
+
 }
 
 .box {
           border-radius: 10px;
           border: 1px solid #ccc;
-          
+
           display: flex;
           align-items: center;
           justify-content: center;
-          
+
           margin-bottom: 20px;
           min-width: 900px;
           margin-right: 40px;
@@ -158,15 +158,15 @@ footer p {
           display: flex;
           flex-direction: column;
           align-items: center;
-          
-          
+
+
         }
-        
-        
+
+
 
         .text_section_HP {
           max-width: 70%;
-         
+
         }
 
         .text_section_HP h2 {
@@ -174,8 +174,26 @@ footer p {
           font-size: 44px;
           margin-top: 40px;
         }
-        
+
         .text_section_HP p {
           font-size: 25px;
-          
+
         }
+
+
+
+
+
+/* Text color for the winning number and history */
+
+.red-text {
+  color: red;
+}
+
+.black-text {
+  color: black;
+}
+
+.green-text {
+  color: green;
+}
