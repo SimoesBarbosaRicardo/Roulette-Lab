@@ -746,8 +746,8 @@ win_rate <- function(df_amount) {
     }
   }
 
-
   return(as.data.frame(win_rate))
+
 }
 
 
@@ -1515,13 +1515,19 @@ server <- function(input, output,session) {
     #browser()
     # now we plot the plot for the winrate
     df_win_rate <- win_rate(df_balance)
+    # we calculate the overall winrate
+    mean_win_rate <- mean(df_win_rate$win_rate)
     output$win_rate_plot <- renderPlot({
       ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
         geom_col()+
         scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
         labs(x = "ID of the simulation", y = "Winrate Percentage")+
-        geom_hline(yintercept = 0.5, linetype = "dotted", color = "black")+
+        geom_segment(aes(x = 0, y = 0.5, xend = input$num_sims, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
+        geom_segment(aes(x = 0, y = mean_win_rate, xend = input$num_sims, yend = mean_win_rate, color = "Actual win rate", linetype = "Line 2 green"), show.legend = TRUE) +
         scale_x_continuous(breaks= 1:input$num_sims)+
+        scale_color_manual(values = c("black", "green"), guide = guide_legend(title = "Lines"))+
+        scale_linetype_manual(values = c("dotted", "dashed"))+
+        guides(linetype = "none")+
         theme_minimal()
     })
 
