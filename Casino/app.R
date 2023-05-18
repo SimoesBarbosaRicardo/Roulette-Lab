@@ -513,7 +513,8 @@ roulette <- function(verbose = FALSE) {
               high = bettingTable$high[tableIndex],
               snakeBet = bettingTable$snakeBet[tableIndex],
               dozen = bettingTable$dozen[tableIndex],
-              column = bettingTable$column[tableIndex]))
+              column = bettingTable$column[tableIndex],
+              history = character()))
 
   # roulette retourne une liste contenant le numéro gagnant ainsi que ses charactéristiques
   # en 1 et 0.
@@ -852,7 +853,8 @@ ui <- fluidPage(
                                    hr(),
 
 
-                                   textOutput("roulette"),
+                                   textOutput("rouletteWinningNumber"),
+                                   textOutput("rouletteHistory"),
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
@@ -1180,27 +1182,35 @@ server <- function(input, output,session) {
 
   ## D. Spin the wheel------
   observeEvent(input$spin, {
+
     # save the bets for results tables
     resultsTable$data <- selectedPoints$data
 
     # clear the betting table
-    selectedPoints$data <- cbind(clickable[0, ], betAmount = double())
+    selectedPoints$data <-cbind(clickable[0,], betAmount = double())
 
     # spin the roulette
     # roulette retourne une liste avec le numéro gagnant ainsi que ses charactéristiques
     # sous forme de 1 et 0.
+    # We save this list within roulette$winningSlot
+    # So to access one of the characteristic, just do roulette$winningSlot$characteristic
     roulette$winningSlot <- roulette(verbose = TRUE)
 
-    roulette$winningSlot$slotLanded
 
-    # Save spin results
-    roulette$history <- c(rep("",10),roulette$history,roulette$winningSlot$slotLanded)
+
+    # Save spin results for the history
+    if (!is.null(roulette$winningSlot)) {
+      roulette$history <-c(roulette$winningSlot$slotLanded, roulette$history)
+      if (length(roulette$history) > 10) {
+        roulette$history <- roulette$history[1:10]
+      }
+    }
 
 
     if (nrow(resultsTable$data) > 0) {
-      tableOverall <- data.frame(slots = apply(resultsTable$data, 1, combineSlots),
-                                 betAmount = resultsTable$data$betAmount,
-                                 outcome = apply(resultsTable$data, 1, checkWin))
+      tableOverall <-data.frame(slots = apply(resultsTable$data, 1, combineSlots),
+                                betAmount = resultsTable$data$betAmount,
+                                outcome = apply(resultsTable$data, 1, checkWin))
 
       #print("results table")
       #print(resultsTable$data) it prints what is betted on
@@ -1209,26 +1219,29 @@ server <- function(input, output,session) {
 
 
       # Grab the bets and sum the bet outcomes
-      bet_results <- if(nrow(tableOverall) > 0){
+      bet_results <- if (nrow(tableOverall) > 0) {
         data.frame(outcome = apply(tableOverall, 1, computeTotal))
-      }else{
-        data.frame(outcome = NULL,
-                   stringsAsFactors = FALSE)
-      }
+        }
+      else{
+        data.frame(outcome = NULL,stringsAsFactors = FALSE)
+        }
 
 
       print("bet_results")
       print(bet_results[[1]])
 
       #this is the same thing as total above.
-    #   manualTotals <- ifelse(nrow(tableOverall[tableOverall$manualBet == TRUE, ]) > 0,
-    #                          data.frame(outcome = apply(tableOverall[tableOverall$manualBet == TRUE, ], 1, computeTotal),
-    #                                     stringsAsFactors = FALSE),
-    #                          data.frame(outcome = NULL,
-    #                                     stringsAsFactors = FALSE))
-    #
-    # }
+      #   manualTotals <- ifelse(nrow(tableOverall[tableOverall$manualBet == TRUE, ]) > 0,
+      #                          data.frame(outcome = apply(tableOverall[tableOverall$manualBet == TRUE, ], 1, computeTotal),
+      #                                     stringsAsFactors = FALSE),
+      #                          data.frame(outcome = NULL,
+      #                                     stringsAsFactors = FALSE))
+      #
+      # }
 
+    }
+    else{
+      bet_results <- data.frame(outcome = NULL,stringsAsFactors = FALSE)
     }
 
     # we print the sum of our bets.
@@ -1241,7 +1254,7 @@ server <- function(input, output,session) {
     currentBalance <- updatedbalance$balance
     # the reactive value updatedbalance is then calculated this way
     updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
-    })
+  })
 
   # Reset the bet
   observeEvent(input$reset, {
@@ -1391,14 +1404,25 @@ server <- function(input, output,session) {
   #     paste("The general balance is :", general_balance)
   # })
 
-  output$roulette <- renderText({
+  output$rouletteWinningNumber <- renderText({
     if (!is.null(roulette$winningSlot)) {
       paste("The winning slot is:", roulette$winningSlot$slotLanded)
-      paste("The history of winning slots is : ", paste(roulette$history[length(roulette$history) - 10:length(roulette$history) -1]))
     } else {
       return(invisible(NULL))
     }
+
   })
+  output$rouletteHistory <- renderText({
+    if (!is.null(roulette$winningSlot)) {
+      paste("The history of winning slots is:", paste(roulette$history, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+
+  })
+
+
+
 
   # this is in order for the UI to display or updated balance.
   output$generalbalance <- renderText({
