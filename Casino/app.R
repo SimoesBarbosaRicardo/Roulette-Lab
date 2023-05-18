@@ -416,6 +416,73 @@ ditch_the_axes <- theme(
 )
 
 
+# D. Table rendering function:
+
+renderTable <- function() {
+  rouletteTable <- ggplot() +
+    geom_tile(data = df, aes(x, y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    geom_polygon(data = twoToOne1, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = twoToOne2, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = twoToOne3, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = oneToEighteenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = redSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = evenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = oddSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = blackSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = thirdTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = secondTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = firstTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = ninteenThirtysixSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = zeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    geom_polygon(data = doubleZeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    scale_fill_manual(values = cols) +
+    scale_color_manual(values = colsTwo) +
+    # 1-3: white circles; 4: transparent
+    #geom_circle(aes(x0=c(df$x,0.5, 3.5, columnBets$x, splitBets$x, dozenBets$x,
+    # outsideBets$x, quadBets$x, lineBets$x, streetBets$x, trioBets$x, topLineBets$x), y0=c(df$y, 23.9, 23.9, columnBets$y,
+    # splitBets$y, dozenBets$y, outsideBets$y, quadBets$y, lineBets$y, streetBets$y, trioBets$y, topLineBets$y), r=.7, color =
+    # factor('4'))) +
+    annotate("text", x = df$x, y = df$y, label = annotationLabels, color = "white") +
+    annotate("text", x = zerosAnnotationCoords$x, y = zerosAnnotationCoords$y, label = c("0", "00"),
+             color = "white") +
+    annotate("text", x = columnAnnotationCoords$x, y = columnAnnotationCoords$y, label = "2:1",
+             size = 3.5, color = "white") +
+    annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
+             color = "white", angle = -90, size = 5) +
+    annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
+             label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
+    # show all clickable points
+    #geom_point(data = clickable, aes(x=x, y=y)) +
+    # Bets are drawn on the table here
+
+    coord_equal() +
+    theme_bw() +
+    ditch_the_axes
+
+
+  #To save an image of the plot for callibration:
+  #filename <- "rTable_plot.png"
+  #ggsave(filename, plot = rouletteTable, dpi = 300)
+
+}
+
+
+# E. Chips rendering function:
+
+renderChips <- function(rouletteTable, selectedPoints) {
+  if (!is.null(selectedPoints) && nrow(selectedPoints) > 0) {
+    rouletteTable +
+      geom_point(data = NULL, aes(x = selectedPoints$x, y = selectedPoints$y),
+                 colour = "dimgray", size = 12) +
+      geom_point(data = NULL, aes(x = selectedPoints$x, y = selectedPoints$y),
+                 colour = selectedPoints$user_color, size = 9) +
+      annotate("text", x = selectedPoints$x, y = selectedPoints$y, label = selectedPoints$betAmount,
+               color = contrast_color(selectedPoints$user_color), size = 4)
+  } else {
+    rouletteTable
+  }
+}
+
 # VI. Roulette Function & Helpers -----------------------------------------
 # A. Function responsible for picking a random number out of the slots a
 #     and returning the winning slot as well its characteristics
@@ -783,20 +850,23 @@ ui <- fluidPage(
                                                   choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
                                                   selected = "navy"),
                                    hr(),
-                                   actionButton("spin", "Spin Roulette"),
-                                   actionButton("reset", "Reset Bets"),
+
+
                                    textOutput("roulette"),
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
                             #Roulette gifs:
+
                             column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                                   actionButton("spin", "Spin Roulette"),
                                    div(style = "height: 100%; display: flex; align-items: center;",
                                        img(src = "Numero 20.gif", style = "max-width: 100%; max-height: 100%; margin: auto;")
                                    )
                             ),
                             #Roulette table:
                             column(4, style = "text-align: center; padding-top: 0px;",
+                                   actionButton("reset", "Reset Bets"),
                                    div(style = "height: 100%; display: flex; align-items: center; justify-content: flex-start;",
                                        plotOutput("rTable", click = "plot_click", height = "750px", width = "1000px")
                                    )
@@ -965,74 +1035,90 @@ server <- function(input, output,session) {
   })
 
 
+
+
   # III. Table Plot ---------------------------------------------------------------
   # Roulette table
+  # output$rTable <- renderPlot({
+  #   rouletteTable <- ggplot() +
+  #     geom_tile(data = df, aes(x, y, fill = factor(z), color = factor(z)), size = 1.5) +
+  #     geom_polygon(data = twoToOne1, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = twoToOne2, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = twoToOne3, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = oneToEighteenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = redSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = evenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = oddSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = blackSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = thirdTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = secondTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = firstTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = ninteenThirtysixSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
+  #     geom_polygon(data = zeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
+  #     geom_polygon(data = doubleZeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
+  #     scale_fill_manual(values = cols) +
+  #     scale_color_manual(values = colsTwo) +
+  #     # 1-3: white circles; 4: transparent
+  #     #geom_circle(aes(x0=c(df$x,0.5, 3.5, columnBets$x, splitBets$x, dozenBets$x,
+  #     # outsideBets$x, quadBets$x, lineBets$x, streetBets$x, trioBets$x, topLineBets$x), y0=c(df$y, 23.9, 23.9, columnBets$y,
+  #     # splitBets$y, dozenBets$y, outsideBets$y, quadBets$y, lineBets$y, streetBets$y, trioBets$y, topLineBets$y), r=.7, color =
+  #     # factor('4'))) +
+  #     annotate("text", x = df$x, y = df$y, label = annotationLabels, color = "white") +
+  #     annotate("text", x = zerosAnnotationCoords$x, y = zerosAnnotationCoords$y, label = c("0", "00"),
+  #              color = "white") +
+  #     annotate("text", x = columnAnnotationCoords$x, y = columnAnnotationCoords$y, label = "2:1",
+  #              size = 3.5, color = "white") +
+  #     annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
+  #              color = "white", angle = -90, size = 5) +
+  #     annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
+  #              label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
+  #     # show all clickable points
+  #     #geom_point(data = clickable, aes(x=x, y=y)) +
+  #     # Bets are drawn on the table here
+  #     geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
+  #                colour = "dimgray", size = 12) +
+  #     geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
+  #                colour = selectedPoints$data$user_color, size = 9) +
+  #     # annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
+  #     #          color = contrast_color(selectedPoints$data$user_color), size = 4) +
+  #     coord_equal() +
+  #     theme_bw() +
+  #     ditch_the_axes
+  #
+  #
+  #   #To save an image of the plot for callibration:
+  #   #filename <- "rTable_plot.png"
+  #   #ggsave(filename, plot = rouletteTable, dpi = 300)
+  #
+  #   #print(selectedPoints$data)
+  #   #print(nrow(selectedPoints$data))
+  #
+  #
+  #   if (nrow(selectedPoints$data) > 0) {
+  #     rouletteTable <- rouletteTable +
+  #       annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
+  #                color = contrast_color(selectedPoints$data$user_color), size = 4)
+  #
+  #     rouletteTable
+  #   }
+  #   else {
+  #     rouletteTable
+  #
+  #   }
+  #
+  # })
+
   output$rTable <- renderPlot({
-    rouletteTable <- ggplot() +
-      geom_tile(data = df, aes(x, y, fill = factor(z), color = factor(z)), size = 1.5) +
-      geom_polygon(data = twoToOne1, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = twoToOne2, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = twoToOne3, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = oneToEighteenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = redSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = evenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = oddSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = blackSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = thirdTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = secondTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = firstTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = ninteenThirtysixSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 2) +
-      geom_polygon(data = zeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
-      geom_polygon(data = doubleZeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), size = 1.5) +
-      scale_fill_manual(values = cols) +
-      scale_color_manual(values = colsTwo) +
-      # 1-3: white circles; 4: transparent
-      #geom_circle(aes(x0=c(df$x,0.5, 3.5, columnBets$x, splitBets$x, dozenBets$x,
-      # outsideBets$x, quadBets$x, lineBets$x, streetBets$x, trioBets$x, topLineBets$x), y0=c(df$y, 23.9, 23.9, columnBets$y,
-      # splitBets$y, dozenBets$y, outsideBets$y, quadBets$y, lineBets$y, streetBets$y, trioBets$y, topLineBets$y), r=.7, color =
-      # factor('4'))) +
-      annotate("text", x = df$x, y = df$y, label = annotationLabels, color = "white") +
-      annotate("text", x = zerosAnnotationCoords$x, y = zerosAnnotationCoords$y, label = c("0", "00"),
-               color = "white") +
-      annotate("text", x = columnAnnotationCoords$x, y = columnAnnotationCoords$y, label = "2:1",
-               size = 3.5, color = "white") +
-      annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
-               color = "white", angle = -90, size = 5) +
-      annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
-               label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
-      # show all clickable points
-      #geom_point(data = clickable, aes(x=x, y=y)) +
-      # Bets are drawn on the table here
-      geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
-                 colour = "dimgray", size = 12) +
-      geom_point(data = NULL, aes(x = selectedPoints$data$x, y = selectedPoints$data$y),
-                 colour = selectedPoints$data$user_color, size = 9) +
-      # annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
-      #          color = contrast_color(selectedPoints$data$user_color), size = 4) +
-      coord_equal() +
-      theme_bw() +
-      ditch_the_axes
+    rouletteTable <- renderTable()
 
 
-    filename <- "rTable_plot.png"
-    ggsave(filename, plot = rouletteTable, dpi = 300)
-
-    #print(selectedPoints$data)
-    #print(nrow(selectedPoints$data))
-
-    if (nrow(selectedPoints$data) > 0) {
-      rouletteTable <- rouletteTable +
-        annotate("text", x = selectedPoints$data$x, y = selectedPoints$data$y, label = selectedPoints$data$betAmount,
-                 color = contrast_color(selectedPoints$data$user_color), size = 4)
-
-      rouletteTable
-    }
-    else {
-      rouletteTable
-
+    if (!is.null(selectedPoints$data) && nrow(selectedPoints$data) > 0) {
+      rouletteTable <- renderChips(rouletteTable, selectedPoints$data)
     }
 
+    rouletteTable
   })
+
 
 
   # IV. Event Observers -----------------------------------------------------
@@ -1053,7 +1139,7 @@ server <- function(input, output,session) {
 
 
   # click function
-  selected_number <- reactiveValues()
+  selected_number <- reactiveValues(data = NULL)
 
 
   observeEvent(input$plot_click,{
