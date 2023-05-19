@@ -773,12 +773,19 @@ ui <- fluidPage(
 
   #Now show the actual app:
   div(id = "app-interface",
-      headerPanel("American Roulette"),
+      
       # Sidebar with a slider and selection inputs
       # column to select the width
-      navbarPage("Casino_name",
-
-
+      navbarPage(title = div(
+        class = "navbar-title",
+        
+        tags$a(
+          href = "javascript:void(0);",
+          class = "back-link",
+          "Roulette Lab",
+          onclick = "shinyjs.hide('app-interface'); shinyjs.show('curtain')" 
+        )
+      ),
                  #About Us page
                  tabPanel("About Us",
 
