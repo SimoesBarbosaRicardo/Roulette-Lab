@@ -1626,37 +1626,38 @@ server <- function(input, output,session) {
       #Test legend:
       p <- p +
         geom_hline(
-          aes(yintercept = tot_amount, linetype = "red_test1", color = "red_test1")
+          aes(yintercept = tot_amount, linetype = "red_dotted", color = "red_dotted")
         ) +
         geom_line(
           data = sum_row_pivot,
-          aes(x = 1:nrow(sum_row_pivot), y = Balance, linetype = "purple_filled2", color = "purple_filled2")
+          aes(x = 1:nrow(sum_row_pivot), y = Balance, linetype = "purple_filled", color = "purple_filled")
         ) +
         geom_hline(
-          aes(yintercept = avg_sum_row, linetype = "purple_dotted3", color = "purple_dotted3")
+          aes(yintercept = avg_sum_row, linetype = "purple_dotted", color = "purple_dotted")
         ) +
         scale_linetype_manual(
-          values = c("red_test1" = "dotted", "purple_filled2" = "solid", "purple_dotted3" = "dotted"),
+          values = c("red_dotted" = "dotted", "purple_filled" = "solid", "purple_dotted" = "dotted"),
           labels = c("Cumulative balance of all simulations at the end",
                      "Cumulative balance of all simulations for each spin",
                      "Mean cumulative balance of all simulations"),
-          guide = guide_legend(title = "Lines",
-                               override.aes = list(linetype =
-                                                     c("red_test1" = "dotted",
-                                                       "purple_filled2" = "solid",
-                                                       "purple_dotted3" = "dotted"))
-                               )) +
+          guide = FALSE
+        ) +
         scale_color_manual(
-          values = c("red_test1" = "red", "purple_filled2" = "purple", "purple_dotted3" = "purple"),
+          values = c("red_dotted" = "red", "purple_filled" = "purple", "purple_dotted" = "purple"),
           labels = c("Cumulative balance of all simulations at the end",
                      "Cumulative balance of all simulations for each spin",
-                     "Mean cumulative balance of all simulations for each spin"),
-          guide = guide_legend(title = "Lines",
-                               override.aes = list(color =
-                                                     c("red_test1" = "red",
-                                                       "purple_filled2" = "purple",
-                                                       "purple_dotted3" = "purple"))
-                               ))
+                     "Mean cumulative balance of all simulations"),
+          guide = FALSE
+        ) +
+        guides(
+          linetype = guide_legend(
+            title = "Lines",
+            override.aes = list(
+              linetype = c("red_dotted" = "dotted", "purple_filled" = "solid", "purple_dotted" = "dotted"),
+              color = c("red_dotted" = "red", "purple_filled" = "purple", "purple_dotted" = "purple")
+            )
+          )
+        )
 
       # Add a legend and customize its position
       p <- p + theme(legend.position = "bottom",
