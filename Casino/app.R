@@ -773,17 +773,17 @@ ui <- fluidPage(
 
   #Now show the actual app:
   div(id = "app-interface",
-      
+
       # Sidebar with a slider and selection inputs
       # column to select the width
       navbarPage(title = div(
         class = "navbar-title",
-        
+
         tags$a(
           href = "javascript:void(0);",
           class = "back-link",
           "Roulette Lab",
-          onclick = "shinyjs.hide('app-interface'); shinyjs.show('curtain')" 
+          onclick = "shinyjs.hide('app-interface'); shinyjs.show('curtain')"
         )
       ),
                  #About Us page
@@ -814,15 +814,7 @@ ui <- fluidPage(
                                        players but also contribute to the broader understanding of optimal strategies in the casino gaming industry.
                                        Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
                                   ),
-
                                   tags$h2("Strategies"),
-                                  tags$p("The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern."
-                                  ),
-                                  tags$p("It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black."),
-
-                                  tags$p("Initially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
-                                      While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."
-                                  )
                                 ),
                               )
                           )
@@ -870,7 +862,6 @@ ui <- fluidPage(
                             #Roulette gifs:
 
                             column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
-                                   shinyjs::useShinyjs(),
                                    actionButton("spin", "Spin Roulette"),
                                    tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
                                    #div(style = "height: 100%; display: flex; align-items: center;",
@@ -902,8 +893,8 @@ ui <- fluidPage(
 
                                            selected = "Martingale"),
                             numericInput("num_sims", "Number of simulations:", 10, min = 1),
-                            numericInput("start_bet", "Balance:", 100, min = 1),
-                            numericInput("bet_amount", "bet amount:", 10, min = 1),
+                            numericInput("start_bet", "Starting balance:", 100, min = 1),
+                            numericInput("bet_amount", "Starting bet amount:", 10, min = 1),
                             numericInput("tot_spin", "Number of spins per simulation:", 50, min = 1),
                             actionButton("run_simulation", "Run simulation")
 
@@ -914,7 +905,7 @@ ui <- fluidPage(
                                     h4("Win Rate Percentage"),
                                     plotOutput("win_rate_plot", height = "200px"),
                                     br(),
-                                    plotOutput("martingale_plot", height = "400px"),
+                                    plotOutput("balance_plot", height = "400px"),
                                     br(),
                                     textOutput("textstrategy")
 
@@ -964,8 +955,10 @@ server <- function(input, output,session) {
 
   session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
 
+  #Initiate roulette_display$gif to an empty string
   roulette_display <- reactiveValues(gif = "")
 
+  #Fill it with the name of the image of the empty roulette
   roulette_display$gif = "photo_roulette.png"
 
   # the dataframe that we are going to use for the plots.
@@ -1135,6 +1128,7 @@ server <- function(input, output,session) {
 
   ## D. Spin the wheel------
   observeEvent(input$spin, {
+    #Play the sound of the ball rolling
     runjs("document.getElementById('sound').play();")
 
     # save the bets for results tables
@@ -1208,6 +1202,8 @@ server <- function(input, output,session) {
     updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
 
 
+    #When starting the roulette, we update roulette_display$gif which was an image of the empty
+    #roulette to the correct gif
     roulette_display$gif = switch(roulette$winningSlot$slotLanded,
                               "0" = "numero_0.gif",
                               "00" = "numero_00.gif",
@@ -1462,42 +1458,87 @@ server <- function(input, output,session) {
                                                                     input$bet_amount,
                                                                     roulette,
                                                                     input$tot_spin)
-                     text1 = "The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern.
+                     text_strategy = "The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern.
                      It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black.
-                     Initially, you place a bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet. However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
-                                      While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness. It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings."},
+                     Initially, you place a bet on even. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.
+                     The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet.
+                     However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
+                     While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness.
+                     It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings.
+                     "},
+
                      "Fibonacci system" = {df_balance <- fibonacci_strategy(input$num_sims,
-                                                                         input$start_bet,
-                                                                         input$bet_amount,
-                                                                         roulette,
-                                                                         input$tot_spin)
-                     text1 = "dkjfbgkfj"},
+                                                                  input$start_bet,
+                                                                  input$bet_amount,
+                                                                  roulette,
+                                                                  input$tot_spin)
+                     text_strategy = "The Fibonacci betting system is another popular strategy used in various gambling games, including roulette. This strategy derives its name from the Fibonacci sequence, a mathematical sequence where each number is the sum of the two preceding numbers (e.g., 1, 1, 2, 3, 5, 8, 13, and so on).
+                     When applied to betting, the Fibonacci strategy follows a specific pattern.
+                     The Fibonacci betting system is often employed in games with even-money bets, such as red or black, odd or even, or high or low numbers in roulette. Let's consider the example of betting on even  using the Fibonacci strategy.
+                     To begin, you start with the first two numbers of the Fibonacci sequence, which are 1 and 1. You place your initial bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet.
+                     However, if you lose, you progress along the Fibonacci sequence and bet the next number in line. In this case, your next bet would be 2 (1 + 1). If you lose again, you move further along the sequence and bet the next number, which is 3 (1 + 2). You continue this pattern, always betting the sum of the two preceding numbers in the Fibonacci sequence.
+                     The idea behind the Fibonacci strategy is that when you eventually win, your winnings should be sufficient to cover all previous losses, leaving you with a profit equal to your initial bet. The progression in bet amounts is meant to help recoup losses gradually.
+                     However, it's essential to understand that like the Martingale strategy, the Fibonacci betting system has its limitations and risks. A prolonged losing streak can lead to escalating bets, which can result in significant losses. Additionally, table limits and a finite bankroll may restrict the effectiveness of this strategy.
+                     While the Fibonacci strategy can be enticing due to its mathematical basis, it is crucial to approach it with caution and consider the inherent risks involved. Understanding the limitations and potential downsides of this strategy is vital before applying it in real-world casino settings.
+                     "},
+
                      "Reverse Martingale" = {df_balance <- reverse_martingale_strategy(input$num_sims,
                                                                        input$start_bet,
                                                                        input$bet_amount,
                                                                        roulette,
-                                                                       input$tot_spin)},
+                                                                       input$tot_spin)
+                     text_strategy = "The Reverse Martingale strategy, also known as the Paroli system, is a popular betting approach used in various gambling games, including roulette. This strategy operates in contrast to the traditional Martingale system. While the Martingale doubles the bet after a loss, the Reverse Martingale doubles the bet after a win.
+                     Similarly to the previous strategies, players typically choose even-money bets in games.
+                     To begin, you place an initial bet on red. If you win, you double your bet on the next spin. If you win again, you continue doubling your bet for subsequent wins. The idea behind the Reverse Martingale strategy is to capitalize on winning streaks and maximize profits during favorable runs.
+                     Unlike the Martingale strategy, where losses can escalate rapidly, the Reverse Martingale aims to exploit winning streaks while limiting losses during unfavorable runs. By doubling the bet after each win, the strategy allows players to potentially accumulate larger winnings while keeping their original investment intact.
+                     However, it's important to note that the Reverse Martingale strategy also carries inherent risks. Winning streaks are never guaranteed, and a sudden loss can wipe out previous profits. It is crucial to exercise caution and establish predetermined win targets or loss limits to protect against potential downturns.
+                     Moreover, table limits and a finite bankroll can limit the effectiveness of the Reverse Martingale strategy. It is important to consider these factors and evaluate the suitability of this approach within the specific context of a real-world casino setting.
+                     While the Reverse Martingale strategy can be an appealing betting system, it is crucial to understand its limitations and potential risks. Careful consideration and proper bankroll management are essential to make informed decisions and ensure a responsible gambling experience.
+                     "},
+
                      "Reverse Martingale stop" = {df_balance <- reverse_martingale_strategy_stop(input$num_sims,
                                                                                        input$start_bet,
                                                                                        input$bet_amount,
                                                                                        roulette,
-                                                                                       input$tot_spin)},
+                                                                                       input$tot_spin)
+                     text_strategy = "The Reverse Martingale Stop is a modified version of the Reverse Martingale, also known as the Paroli system. This strategy introduces a deliberate stopping point to take advantage of the potential snowballing effect observed in the traditional Reverse Martingale strategy. Here's an explanation of the motivation behind this approach:
+                     The Reverse Martingale strategy is based on doubling the bet after each win, with the aim of capitalizing on winning streaks and maximizing profits during favorable runs. However, it is important to acknowledge that in the context of casino games, the presence of the 0 and 00 pockets in roulette ensures that, over an extended period, players will inevitably lose and end up with a balance of 0.
+                     Recognizing this inherent limitation, the Reverse Martingale Stop strategy introduces a predetermined stopping point to avoid the eventual loss of the entire balance. By setting a predefined goal or threshold, players can proactively choose to stop playing once they reach a certain profit level or when they've achieved a predetermined number of consecutive wins.
+                     The motivation behind the Reverse Martingale Stop strategy is to strike a balance between capitalizing on winning streaks and safeguarding against potential losses. By incorporating a stop condition, players aim to secure a reasonable profit without risking their entire bankroll in pursuit of an unrealistic goal.
+                     Implementing a stop condition in the Reverse Martingale strategy allows players to exercise control and discipline in their betting approach. It encourages a more measured and responsible gambling experience by setting clear objectives and adhering to predetermined limits.
+                     It is important to note that while the Reverse Martingale Stop strategy introduces an element of risk management, it does not guarantee long-term profitability. Casino games, including roulette, are designed with an inherent house edge that ensures, over time, players will lose money. Therefore, it is crucial to approach any betting strategy, including the Reverse Martingale Stop, with a realistic understanding of the probabilities and potential outcomes.
+                     Before applying the Reverse Martingale Stop strategy or any betting system, it is advisable to assess personal risk tolerance, establish clear objectives, and set reasonable stop conditions to ensure responsible gambling behavior.
+
+                     !!!! need to add more details concerning the interaction between the purple line and red line
+                     "},
+
 
                      "D'Alembert System" = {df_balance <- dalembert_strategy(input$num_sims,
                                                                              input$start_bet,
                                                                              input$bet_amount,
                                                                              roulette,
-                                                                             input$tot_spin)}
-
+                                                                             input$tot_spin)
+                     text_strategy = "The D'Alembert system is a popular betting strategy utilized in various gambling games, including roulette. This strategy follows a different approach compared to the Martingale or Reverse Martingale systems.
+                     The D'Alembert system is a betting strategy that focuses on incrementally adjusting bet sizes based on wins and losses. Named after the French mathematician Jean le Rond d'Alembert, this strategy aims to achieve a more balanced progression while minimizing potential losses.
+                     In the D'Alembert system, players typically choose even-money bets.
+                     The key principle of this strategy is to increase the bet size by a predetermined unit after a loss and decrease it by the same unit after a win.
+                     In our implementation, this predetermined unit is the starting bet amount.
+                     The motivation behind the D'Alembert system is to create a slower and more conservative progression, which reduces the risk of substantial losses during extended losing streaks. By increasing the bet size after a loss, players aim to recoup their previous losses gradually. Conversely, reducing the bet size after a win helps protect profits and mitigate potential downturns.
+                     Unlike the Martingale system, which involves doubling bets after each loss, the D'Alembert system offers a more gradual and controlled approach. This can provide a sense of stability and a longer-lasting bankroll during a session of play.
+                     However, it is essential to recognize that the D'Alembert system does not guarantee long-term profitability. Similar to other betting strategies, the D'Alembert system cannot overcome the inherent house edge in casino games. It is crucial to approach the strategy with a realistic understanding of the probabilities and potential outcomes.
+                     Moreover, it's important to exercise caution when implementing the D'Alembert system, as an extended losing streak can still result in significant losses. While the gradual adjustment of bet sizes aims to minimize risks, the introduction of a predetermined loss limit, as seen before can also be important.
+                     Before utilizing the D'Alembert system or any betting strategy, it is advisable to assess personal risk tolerance, set reasonable objectives, and be aware of the limitations associated with the strategy. Understanding the dynamics of the game, practicing responsible gambling, and having realistic expectations are essential factors in optimizing the overall gambling experience.
+                     "}
            )
 
 
 
-    output$textstrategy <- renderText({text1}) #+ ajotuer la textOutput dans UI
+    output$textstrategy <- renderText({text_strategy}) #+ ajotuer la textOutput dans UI
 
     #browser()
     #Bottom plot
-    output$martingale_plot <- renderPlot({
+    output$balance_plot <- renderPlot({
+
 
       # Add a sequence column to represent the rows
       df_balance$row <- seq_len(nrow(df_balance))
@@ -1527,11 +1568,28 @@ server <- function(input, output,session) {
       # all the final balances at the end.
       sum_of_amount_unlisted = unlist(sum_of_amount)
       tot_amount = sum(sum_of_amount_unlisted)
-      #browser()
+
       p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
+
+
+      #Attempt to plot the sum of balance of all simulations for each spin
+      # Calculate the sum of each column (spin) and create a new row
+      sum_row <- df_balance %>% summarize(across(everything(), ~sum(replace(., is.na(.), 0))))
+
+      # Reshape sum_row to match the structure of df_balance
+      sum_row_pivot <- pivot_longer(sum_row, cols = -row, names_to = "Column", values_to = "Balance")
+
+
+      # Add the sum row as a line to the plot
+      p <- p + geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple")
+
+
+      #browser()
+      final <- mean(unlist(sum_row))
+      p <- p + geom_hline(yintercept = final, linetype = "dotted", color = "purple")
+
+
       print(p)
-
-
     })
 
     #Top plot
