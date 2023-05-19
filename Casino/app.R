@@ -902,9 +902,12 @@ ui <- fluidPage(
 
                           #Graphs
                           mainPanel(br(),
-                                    h4("Win Rate Percentage"),
+                                    h4("Win Rate per simulation"),
                                     plotOutput("win_rate_plot", height = "200px"),
                                     br(),
+                                    textOutput("text_win_rate"),
+                                    br(),
+                                    h4("Evolution of the Balance over the number of spins"),
                                     plotOutput("balance_plot", height = "400px"),
                                     br(),
                                     textOutput("textstrategy")
@@ -1448,10 +1451,10 @@ server <- function(input, output,session) {
 
   })
 
-  ## Strategy graphs:----
+  ## Strategy graphs----
   observeEvent(input$run_simulation, {
 
-    #Strategy selection
+    ###Strategy selection----
     switch(input$selectedStratgy,
                      "Martingale" = {df_balance <- martingale_strategy(input$num_sims,
                                                                     input$start_bet,
@@ -1533,10 +1536,37 @@ server <- function(input, output,session) {
 
 
 
-    output$textstrategy <- renderText({text_strategy}) #+ ajotuer la textOutput dans UI
+    ##Top plot ----
+    # now we plot the plot for the winrate
+    df_win_rate <- win_rate(df_balance)
+    # we calculate the overall winrate
+    mean_win_rate <- mean(df_win_rate$win_rate)
+    output$win_rate_plot <- renderPlot({
+      ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
+        geom_col()+
+        scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
+        labs(x = "ID of the simulation", y = "Winrate")+
+        geom_segment(aes(x = 0, y = 0.5, xend = input$num_sims, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
+        geom_segment(aes(x = 0, y = mean_win_rate, xend = input$num_sims, yend = mean_win_rate, color = "Average win rate of the simulations", linetype = "Line 2 green"), show.legend = TRUE) +
+        scale_x_continuous(breaks= 1:input$num_sims)+
+        scale_color_manual(values = c("black", "green"), guide = guide_legend(title = "Lines"))+
+        scale_linetype_manual(values = c("dotted", "dashed"))+
+        guides(linetype = "none")+
+        theme_minimal()
+    })
 
-    #browser()
-    #Bottom plot
+
+    #Text for the winrate graph, under the top plot
+    output$text_win_rate <- renderText({
+      "In the plot above, we can observe the win rate of each simulation over multiple spins of the roulette.
+      It is evident that the average win rate of the simulations consistently remains below 50%.
+      Despite acknowledging the randomness of the roulette and the possibility of variations, this consistent difference can be attributed to the mechanics of the roulette itself.
+      The payouts in the roulette generally align with the odds of their occurrence, except for the inclusion of the numbers 0 and 00.
+      These numbers do not belong to any specific category like black or red, even or odd, etc.
+      Although they occur infrequently, their presence is sufficient to bring down the average win rate below 50%, ensuring that the house always maintains an advantage in the long run.
+      "})
+
+    ##Bottom plot----
     output$balance_plot <- renderPlot({
 
 
@@ -1545,9 +1575,7 @@ server <- function(input, output,session) {
 
       # Create an empty ggplot object
       p = ggplot()+
-        labs(x = "Spins", y = "Balance",
-             title = "Evolution of the Balance over the number of spins",
-             caption = "The red dotted line is the overall final balance")+
+        labs(x = "Spins", y = "Balance")+
         geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
         theme_minimal ()
 
@@ -1569,7 +1597,7 @@ server <- function(input, output,session) {
       sum_of_amount_unlisted = unlist(sum_of_amount)
       tot_amount = sum(sum_of_amount_unlisted)
 
-      p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red")
+      #p <- p +
 
 
       #Attempt to plot the sum of balance of all simulations for each spin
@@ -1581,35 +1609,64 @@ server <- function(input, output,session) {
 
 
       # Add the sum row as a line to the plot
-      p <- p + geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple")
+      #p <- p + geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple")
 
 
       #browser()
-      final <- mean(unlist(sum_row))
-      p <- p + geom_hline(yintercept = final, linetype = "dotted", color = "purple")
+      avg_sum_row <- mean(unlist(sum_row))
 
+      #Correct lines:
+      # p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red") +
+      #   geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple") +
+      #   geom_hline(yintercept = avg_sum_row, linetype = "dotted", color = "purple")
+
+      #Test legend:
+      p <- p +
+        geom_hline(
+          aes(yintercept = tot_amount, linetype = "red_test1", color = "red_test1")
+        ) +
+        geom_line(
+          data = sum_row_pivot,
+          aes(x = 1:nrow(sum_row_pivot), y = Balance, linetype = "purple_filled2", color = "purple_filled2")
+        ) +
+        geom_hline(
+          aes(yintercept = avg_sum_row, linetype = "purple_dotted3", color = "purple_dotted3")
+        ) +
+        scale_linetype_manual(
+          values = c("red_test1" = "dotted", "purple_filled2" = "solid", "purple_dotted3" = "dotted"),
+          labels = c("Cumulative balance of all simulations at the end",
+                     "Cumulative balance of all simulations for each spin",
+                     "Mean cumulative balance of all simulations"),
+          guide = guide_legend(title = "Lines",
+                               override.aes = list(linetype =
+                                                     c("red_test1" = "dotted",
+                                                       "purple_filled2" = "solid",
+                                                       "purple_dotted3" = "dotted"))
+                               )) +
+        scale_color_manual(
+          values = c("red_test1" = "red", "purple_filled2" = "purple", "purple_dotted3" = "purple"),
+          labels = c("Cumulative balance of all simulations at the end",
+                     "Cumulative balance of all simulations for each spin",
+                     "Mean cumulative balance of all simulations for each spin"),
+          guide = guide_legend(title = "Lines",
+                               override.aes = list(color =
+                                                     c("red_test1" = "red",
+                                                       "purple_filled2" = "purple",
+                                                       "purple_dotted3" = "purple"))
+                               ))
+
+      # Add a legend and customize its position
+      p <- p + theme(legend.position = "bottom",
+                     legend.direction='vertical',
+                     legend.box = "horizontal")
 
       print(p)
     })
 
-    #Top plot
-    # now we plot the plot for the winrate
-    df_win_rate <- win_rate(df_balance)
-    # we calculate the overall winrate
-    mean_win_rate <- mean(df_win_rate$win_rate)
-    output$win_rate_plot <- renderPlot({
-      ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
-        geom_col()+
-        scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
-        labs(x = "ID of the simulation", y = "Winrate Percentage")+
-        geom_segment(aes(x = 0, y = 0.5, xend = input$num_sims, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
-        geom_segment(aes(x = 0, y = mean_win_rate, xend = input$num_sims, yend = mean_win_rate, color = "Actual win rate", linetype = "Line 2 green"), show.legend = TRUE) +
-        scale_x_continuous(breaks= 1:input$num_sims)+
-        scale_color_manual(values = c("black", "green"), guide = guide_legend(title = "Lines"))+
-        scale_linetype_manual(values = c("dotted", "dashed"))+
-        guides(linetype = "none")+
-        theme_minimal()
-    })
+    #Text for each strategy, under the bottom plot
+    output$textstrategy <- renderText({text_strategy})
+
+
 
   })
 
