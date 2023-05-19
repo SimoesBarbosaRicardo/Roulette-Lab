@@ -1454,6 +1454,9 @@ server <- function(input, output,session) {
   ## Strategy graphs----
   observeEvent(input$run_simulation, {
 
+    # define the variable "number_simulation" for the graph
+    number_simulation = input$num_sims
+
     ###Strategy selection----
     switch(input$selectedStratgy,
                      "Martingale" = {df_balance <- martingale_strategy(input$num_sims,
@@ -1546,9 +1549,9 @@ server <- function(input, output,session) {
         geom_col()+
         scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
         labs(x = "ID of the simulation", y = "Winrate")+
-        geom_segment(aes(x = 0, y = 0.5, xend = input$num_sims, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
-        geom_segment(aes(x = 0, y = mean_win_rate, xend = input$num_sims, yend = mean_win_rate, color = "Average win rate of the simulations", linetype = "Line 2 green"), show.legend = TRUE) +
-        scale_x_continuous(breaks= 1:input$num_sims)+
+        geom_segment(aes(x = 0, y = 0.5, xend = number_simulation, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
+        geom_segment(aes(x = 0, y = mean_win_rate, xend = number_simulation, yend = mean_win_rate, color = "Average win rate of the simulations", linetype = "Line 2 green"), show.legend = TRUE) +
+        scale_x_continuous(breaks= 1:number_simulation)+
         scale_color_manual(values = c("black", "green"), guide = guide_legend(title = "Lines"))+
         scale_linetype_manual(values = c("dotted", "dashed"))+
         guides(linetype = "none")+
@@ -1579,8 +1582,8 @@ server <- function(input, output,session) {
         geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
         theme_minimal ()
 
-      sum_of_amount = rep(NA,input$num_sims)
-      for(i in 1:input$num_sims){
+      sum_of_amount = rep(NA,number_simulation)
+      for(i in 1:number_simulation){
         # Filter the dataframe for the current line
         df_line <- filter(df_balance, row == i)
         df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
