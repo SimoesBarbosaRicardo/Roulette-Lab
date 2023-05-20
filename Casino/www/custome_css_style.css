@@ -98,16 +98,7 @@ header h1 {
   border-radius: 10px;
 }
 
-/* Adjust footer style */
-footer {
-  background-color: #000000;
-  padding: 20px;
-  text-align: center;
-}
 
-footer p {
-  margin: 0;
-}
 
 /* Hide default Shiny styles */
 .shiny-input-container,
@@ -254,21 +245,15 @@ footer p {
     box-shadow: 0px 6px 5px #F8AF36;
 }
   
-
-
-/* Text color for the winning number and history */
-
-.red-text {
-  color: red;
+/* Second Paragraph: Strategies */
+ 
+#Text_latex.shiny-text-output.shiny-bound-output {}
+  margin-left: 40px;
+  margin-right: 40px;
+  
 }
 
-.black-text {
-  color: black;
-}
 
-.green-text {
-  color: green;
-}
 
 
 
@@ -283,6 +268,7 @@ footer p {
   padding-right: 15px;
   padding-left: 30px !important;
 }
+
 
 /* Left panel, line of the winning number*/
 #rouletteHistory_red.shiny-text-output{
@@ -301,3 +287,45 @@ footer p {
  
 }
 
+/* Footer*/
+
+ 
+
+.footer {
+      background-color: #000000;
+      
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      margin-top: 40px;
+      padding: 10px;
+      text-align: center;
+      
+    }
+    
+    .footer img {
+      max-width: 100%;
+      max-height: 100px;
+    }
+    
+    
+    /* Footer for statistic section: Unable to put the same footer as before, very wierd, need to use display flex*/
+    .foter {
+      background-color: #000000;
+      display: flex;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      margin-top: 40px;
+      padding: 10px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      
+    }
+    
+    
+    .foter img {
+      max-width: 100%;
+      max-height: 100px;
+    }
