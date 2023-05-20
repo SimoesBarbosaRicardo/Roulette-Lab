@@ -817,8 +817,11 @@ ui <- fluidPage(
                                   tags$h2("Strategies"),
                                 ),
                               )
-                          )
-                 ),
+                          ),
+# Text with LATEX
+                          withMathJax(textOutput("Text_latex")),
+
+                          ),
 
 
 
@@ -924,6 +927,16 @@ server <- function(input, output,session) {
 
 
   shinyjs::hide("app-interface") #used for the curtain animation at the start
+
+# Text with LATEX
+  output$Text_latex <- renderText({
+    print(paste0("Before you begin playing our American roulette, it's crucial to understand the risks involved. To help you comprehend these risks, we will explain the mathematical expectation of winning in this game. The mathematical expectation can be calculated using the following formula:
+$$\\frac{\\text{Expected number of positive outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Gain for positive outcomes} + \\frac{\\text{Expected number of negative outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Losses for negative outcomes} $$
+Let's consider a scenario where you play  1$ only on one number. In this case, the expected gain can be calculated as follows: $$\\frac{1}{38}\\cdot 5 + \\frac{37}{38}\\cdot (-1)  =\\frac{-2}{38} = -0.0526 = 5.26\\% $$ This means that on average, for every round played, you can expect to lose 5.26% of your balance."))
+  })
+
+
+
 
   # I. Reactive Data Frames -------------------------------------------------
   # Store user names and colors
