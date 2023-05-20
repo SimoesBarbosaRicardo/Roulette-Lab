@@ -792,24 +792,18 @@ ui <- fluidPage(
       #About Us page
       tabPanel(
         "About Us",
-
         div(
           class = "section_HP",
-
           div(
             class = "box",
-            tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")
-          ),
-
-
+            tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")),
           div(
             class = "content",
-
             div(
               class = "text_section_HP ",
               tags$h2("Introduction to the project"),
               tags$p(
-                "Introducing our new basic casino application! We are thrilled to share that we have developed a cutting-edge platform designed to test and analyze various strategies in order to uncover the most optimal ones."
+                "Introducing our new basic roulette application! We are thrilled to share that we have developed a cutting-edge platform designed to test and analyze various strategies in order to uncover the most optimal ones."
               ),
               tags$p(
                 "Our team has invested significant time and effort into creating this innovative casino application with the goal of exploring different approaches and tactics. Through extensive research and meticulous development, we have crafted an environment that mimics the thrilling atmosphere of a real casino, enabling users to experiment and refine their strategies."
@@ -820,27 +814,25 @@ ui <- fluidPage(
                                        Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
               ),
               tags$h2("Strategies"),
+              # Text with LATEX
+              withMathJax(div(style = "font-size: 20px;overflow-x: auto;",
+                              textOutput("Text_latex"), ))
+
             ),
-          )
+          ),
         ),
-        # Text with LATEX
-        withMathJax(div(style = "font-size: 20px;",
-                        textOutput("Text_latex"),)
-                    ),
+
         div(
           class = "footer",
-
-
-          tags$a(href = "https://github.com", target = "_blank",
-                 tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
+          tags$a(
+            href = "https://github.com",
+            target = "_blank",
+            tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
+          )
         )
 
 
       ),
-
-
-
-
 
 
                  #Roulette page
