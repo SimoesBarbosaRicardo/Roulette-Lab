@@ -1,9 +1,4 @@
 
-#bet4
-{
-  background-color: #2de4d8; !important;
-  border-color: ; #c230c0; !important;
-}
 
 .section_HP{
   min-width: 900px;
@@ -137,7 +132,7 @@
 
 /* Second Paragraph: Strategies */
 
-#Text_latex.shiny-text-output.shiny-bound-output {}
+#Text_latex.shiny-text-output.shiny-bound-output {
   margin-left: 40px;
   margin-right: 40px;
 
@@ -148,16 +143,58 @@
 
 
 
-/* Page 2 : Roulette                 *    /
+/*        Page 2 : Roulette                 *    /
+
+/* body settings to center all elements (left side of the page)*/
+.row > div:nth-child(1) > div:nth-child(1){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.row > div:nth-child(1) > div:nth-child(1) > div:nth-child(1){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-group:nth-child(14){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+  
+/* Minimum width for chips color selection */
+.form-group:nth-child(14) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1){
+  min-width: 100px;
+}
+ 
+  
+#startbalance{
+   text-align: center;
+}
+
+
+
 
 /* Left panel*/
-
 .col-sm-4 {
   position: relative;
+  
   min-height: 1px;
   padding-right: 15px;
   padding-left: 30px !important;
 }
+
+
+
+
+
+
 
 
 /* Left panel, line of the winning number*/

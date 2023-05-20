@@ -840,7 +840,7 @@ ui <- fluidPage(
                  tabPanel("Roulette",
                           fluidRow(
                             #Roulette inputs
-                            column(4, style = "text-align: center;",
+                            column(4,
                                    div(
                                      style = "margin: auto; width: 80%;",
 
@@ -860,11 +860,13 @@ ui <- fluidPage(
                                      h4("Manual Betting"),
                                      strong("Bet Amount:"),
                                      br(),
-                                     actionButton("bet1", "$10"),
-                                     actionButton("bet2", "$25"),
-                                     actionButton("bet3", "$50"),
-                                     actionButton("bet4", "$100"),
-                                     actionButton("bet5", "$250"),
+                                     div( style = "display: flex; justify-content: center; align-items: center;",
+                                       actionButton("bet1", "$10"),
+                                       actionButton("bet2", "$25"),
+                                       actionButton("bet3", "$50"),
+                                       actionButton("bet4", "$100"),
+                                       actionButton("bet5", "$250"),
+                                     ),
                                      br(),
                                      hr(),
 
