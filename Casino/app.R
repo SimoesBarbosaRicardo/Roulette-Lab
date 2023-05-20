@@ -452,7 +452,7 @@ renderTable <- function() {
     annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
              color = "white", angle = -90, size = 5) +
     annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
-             label = c("19to36", "Odd", "Black", "Red", "Even", "1to18"), color = "white", angle = -90, size = 4) +
+             label = c("19 to 36", "Odd", "Black", "Red", "Even", "1 to 18"), color = "white", angle = -90, size = 4) +
     # show all clickable points
     #geom_point(data = clickable, aes(x=x, y=y)) +
     # Bets are drawn on the table here
@@ -839,43 +839,59 @@ ui <- fluidPage(
                  tabPanel("Roulette",
                           fluidRow(
                             #Roulette inputs
-                            column(4, style = "border: 1px solid black; align=left;",
-                                   numericInput("startbalance", label = h3("Money Balance"), value = 1),
-                                   actionButton("add", "add"),
-                                   hr(),
-                                   br(),
-                                   ### Manual Betting
-                                   h4("Manual Betting"),
-                                   strong("Bet Amount:"),
-                                   br(),
-                                   # \10\25\50\100\250\ bet buttons
-                                   actionButton("bet1", "$10"),
-                                   actionButton("bet2", "$25"),
-                                   actionButton("bet3", "$50"),
-                                   actionButton("bet4", "$100"),
-                                   actionButton("bet5", "$250"),
-                                   br(),
-                                   br(),
-                                   h4("Chip Color"),
-                                   selectizeInput("chipColor", "Choose chip color:",
-                                                  choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
-                                                  selected = "navy"),
-                                   hr(),
+                            column(4, style = "text-align: center;",
+                                   div(
+                                     style = "margin: auto; width: 80%;",
+
+                                     # Money Balance section
+                                     numericInput(
+                                       "startbalance",
+                                       label = h4("Money Balance"),
+                                       value = 1
+                                     ),
+                                     actionButton("add", "add"),
+                                     br(),
+                                     br(),
+                                     textOutput("generalbalance"),
+                                     hr(),
+
+                                     # Manual Betting section
+                                     h4("Manual Betting"),
+                                     strong("Bet Amount:"),
+                                     br(),
+                                     actionButton("bet1", "$10"),
+                                     actionButton("bet2", "$25"),
+                                     actionButton("bet3", "$50"),
+                                     actionButton("bet4", "$100"),
+                                     actionButton("bet5", "$250"),
+                                     br(),
+                                     hr(),
+
+                                     # Chip Color section
+                                     h4("Chip Color"),
+                                     selectizeInput(
+                                       "chipColor",
+                                       "Choose chip color:",
+                                       choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                       selected = "navy"
+                                     ),
+                                     hr(),
+
+                                     #Results section
+                                     h4("Results"),
+                                     textOutput("rouletteWinningNumber"),
+                                     textOutput("rouletteHistoryText"),
+                                     textOutput("rouletteHistory"),
+                                     textOutput("rouletteHistory_red"),
+                                     textOutput("rouletteHistory_black"),
+                                     textOutput("rouletteHistory_green")
 
 
-                                   textOutput("rouletteWinningNumber"),
-                                   textOutput("rouletteHistoryText"),
-                                   textOutput("rouletteHistory"),
-                                   textOutput("rouletteHistory_red"),
-                                   textOutput("rouletteHistory_black"),
-                                   textOutput("rouletteHistory_green"),
-
-                                   # we show our balance of money
-                                   textOutput("generalbalance")
+                                   )
                             ),
                             #Roulette gifs:
 
-                            column(4, style = "border: 1px solid black; text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                            column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    actionButton("spin", "Spin Roulette"),
                                    tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
                                    #div(style = "height: 100%; display: flex; align-items: center;",
@@ -884,7 +900,7 @@ ui <- fluidPage(
 
                             ),
                             #Roulette table:
-                            column(4, style = "border: 1px solid black; text-align: center; padding-top: 0px;",
+                            column(4, style = "text-align: center; padding-top: 0px;",
                                    actionButton("reset", "Reset Bets"),
                                    div(style = "height: 100%; display: flex; align-items: center; justify-content: flex-start;",
                                        plotOutput("rTable", click = "plot_click", height = "750px", width = "1000px")
