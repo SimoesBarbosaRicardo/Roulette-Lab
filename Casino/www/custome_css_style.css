@@ -1,113 +1,3 @@
-/* Get a fancy font from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap');
-
-/* Set background image */
-body {
-  background-image: url('red_curtains_background.jpg');
-  background-repeat: repeat;
-  background-size: cover;
-}
-
-/* Set text color and font */
-body, h1, h2, h3, h4, h5, h6 {
-  color: #blue;
-  font-family: 'Montserrat', sans-serif;
-}
-
-/* Adjust header style */
-header {
-  background-color: #000000;
-  padding: 20px;
-  text-align: center;
-}
-
-header h1 {
-  font-size: 36px;
-}
-
-/* Adjust sidebar style */
-.sidebar {
-  background-color: #000000;
-  padding: 20px;
-  color: #blue;
-}
-
-.sidebar h4 {
-  font-size: 24px;
-}
-
-.sidebar strong {
-  font-weight: bold;
-}
-
-.sidebar .bet-button {
-  background-color: #dc3545;
-  color: #blue;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.sidebar .bet-button:hover {
-  background-color: #c82333;
-}
-
-.sidebar .chip-color {
-  margin-top: 20px;
-}
-
-.sidebar .spin-button {
-  background-color: #007bff;
-  color: #blue;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  margin-top: 20px;
-  cursor: pointer;
-}
-
-.sidebar .spin-button:hover {
-  background-color: #0056b3;
-}
-
-.sidebar .reset-button {
-  background-color: #ffc107;
-  color: #000000;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.sidebar .reset-button:hover {
-  background-color: #e0a800;
-}
-
-/* Adjust main content style */
-.main-content {
-  padding: 20px;
-}
-
-/* Adjust plot area style */
-.plot-area {
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 20px;
-  border-radius: 10px;
-}
-
-
-
-/* Hide default Shiny styles */
-.shiny-input-container,
-.shiny-output-container {
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
 
 #bet4
 {
@@ -115,20 +5,19 @@ header h1 {
   border-color: ; #c230c0; !important;
 }
 
-
 .section_HP{
   min-width: 900px;
-  
+
 }
 
 .box {
           border-radius: 10px;
           border: 1px solid #ccc;
-          
+
           display: flex;
           align-items: center;
           justify-content: center;
-          
+
           margin-bottom: 20px;
           min-width: 900px;
           margin-right: 40px;
@@ -145,30 +34,30 @@ header h1 {
           display: flex;
           flex-direction: column;
           align-items: center;
-          
-          
+
+
         }
-        
-        
+
+
 
         .text_section_HP {
           max-width: 70%;
-         
+
         }
 
         .text_section_HP h2 {
           font-family: "Arial Black", sans-serif; /* Change the font to a casino-like style */
           font-size: 44px;
-          
+
           margin-top: 40px;
         }
-        
+
         .text_section_HP p {
           font-size: 25px;
-          
+
         }
-        
-        
+
+
 
 
 /* supress the padding left and right of the navbar */
@@ -178,9 +67,9 @@ header h1 {
 
 .navbar{
   box-shadow: 0px 5px 5px black;
-  
+
 }
-    
+
 .navbar-static-top{
 
     padding-left: 20px ;
@@ -188,9 +77,9 @@ header h1 {
 .navbar-default {
           font-family: "Arial Black", sans-serif; /* Change the font to a casino-like style */
           font-size: 25px;
-         
-          
-          
+
+
+
           background-color: black;
           border-color: black; /* au cas ou on décide de mettre une border je le met just en noir*/
 }
@@ -204,7 +93,7 @@ header h1 {
   font-size: 25px;
   color: white !important;
   text-decoration: none;
-  
+
 }
 /* couleur quand on passe la souris sur la navbar du background et des lettres */
 .navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
@@ -215,14 +104,15 @@ header h1 {
 
 /* autres éléments de la navbar */
 .navbar-default .navbar-nav>li>a {
-    color: white;
+    color: grey;
+    transition: color 0.3s;
 }
 
-/* autres éléments de la navbar couleur quand on séléctione la séction */  
+/* autres éléments de la navbar couleur quand on séléctione la séction */
 .navbar-default .navbar-nav>.active>a{
-    
+
     background-color: #F8AF36;
-    box-shadow: 0px 5px 5px #F8AF36; /* couvre la box shadow noir  */  
+    box-shadow: 0px 5px 5px #F8AF36; /* couvre la box shadow noir  */
 }
 
 
@@ -233,7 +123,7 @@ header h1 {
 .navbar-default .navbar-nav>li>a,
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
-  color: white; /* Replace with your desired color */
+  color: grey; /* Replace with your desired color */
 }
 
 /* Override text color for selected and active links */
@@ -244,13 +134,13 @@ header h1 {
       background-color: #F8AF36;
     box-shadow: 0px 6px 5px #F8AF36;
 }
-  
+
 /* Second Paragraph: Strategies */
- 
+
 #Text_latex.shiny-text-output.shiny-bound-output {}
   margin-left: 40px;
   margin-right: 40px;
-  
+
 }
 
 
@@ -274,42 +164,43 @@ header h1 {
 #rouletteHistory_red.shiny-text-output{
   color: red!important;
   font-weight: bold;
- 
+
 }
 #rouletteHistory_black.shiny-text-output{
   color: black!important;
   font-weight: bold;
- 
+
 }
 #rouletteHistory_green.shiny-text-output{
   color: green!important;
   font-weight: bold;
- 
+
 }
 
 /* Footer*/
 
- 
+
 
 .footer {
       background-color: #000000;
-      
+
       left: 0;
       bottom: 0;
       width: 100%;
       margin-top: 40px;
       padding: 10px;
       text-align: center;
-      
+
     }
-    
+
     .footer img {
       max-width: 100%;
       max-height: 100px;
     }
-    
-    
-    /* Footer for statistic section: Unable to put the same footer as before, very wierd, need to use display flex*/
+
+
+
+    /* Footer for statistic section: Unable to put the same footer as before, very weird, need to use display flex*/
     .foter {
       background-color: #000000;
       display: flex;
@@ -321,10 +212,10 @@ header h1 {
       text-align: center;
       justify-content: center;
       align-items: center;
-      
+
     }
-    
-    
+
+
     .foter img {
       max-width: 100%;
       max-height: 100px;

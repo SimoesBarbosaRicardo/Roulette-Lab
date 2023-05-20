@@ -15,6 +15,7 @@ library(tidyverse)
 library(DescTools)
 library(microbenchmark)
 library(devtools)
+library(shinycssloaders)
 
 # I. bettingTable Setup ---------------------------------------------------
 # Setup of the bettingTable, dataframe that keeps track of slots on the table
@@ -894,8 +895,6 @@ ui <- fluidPage(
                             column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    actionButton("spin", "Spin Roulette"),
                                    tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
-                                   #div(style = "height: 100%; display: flex; align-items: center;",
-                                       #img(src = "roulette_display", style = "max-width: 100%; max-height: 100%; margin: auto;")
                                    uiOutput("gifDisplay")
 
                             ),
@@ -913,9 +912,10 @@ ui <- fluidPage(
                         div(
                           class = "footer",
 
-
-                          tags$a(href = "https://github.com", target = "_blank",
+                          tags$a(href = "https://github.com",
+                                 target = "_blank",
                                  tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
+
                         )
                  ),
 
@@ -940,12 +940,12 @@ ui <- fluidPage(
                           #Graphs
                           mainPanel(br(),
                                     h4("Win Rate per simulation"),
-                                    plotOutput("win_rate_plot", height = "200px"),
+                                    withSpinner(plotOutput("win_rate_plot", height = "200px"), type = 6, color = "#F8AF36"),
                                     br(),
                                     textOutput("text_win_rate"),
                                     br(),
                                     h4("Evolution of the Balance over the number of spins"),
-                                    plotOutput("balance_plot", height = "400px"),
+                                    withSpinner(plotOutput("balance_plot", height = "400px"), type = 6, color = "#F8AF36"),
                                     br(),
                                     textOutput("textstrategy")
 
