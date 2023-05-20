@@ -792,19 +792,19 @@ ui <- fluidPage(
       #About Us page
       tabPanel(
         "About Us",
-        
+
         div(
           class = "section_HP",
-          
+
           div(
             class = "box",
             tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")
           ),
-          
-          
+
+
           div(
             class = "content",
-            
+
             div(
               class = "text_section_HP ",
               tags$h2("Introduction to the project"),
@@ -829,14 +829,14 @@ ui <- fluidPage(
                     ),
         div(
           class = "footer",
-          
-          
+
+
           tags$a(href = "https://github.com", target = "_blank",
                  tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
         )
-        
-        
-      ), 
+
+
+      ),
 
 
 
@@ -877,7 +877,7 @@ ui <- fluidPage(
                                    textOutput("rouletteHistory_red"),
                                    textOutput("rouletteHistory_black"),
                                    textOutput("rouletteHistory_green"),
-                                   
+
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
@@ -904,8 +904,8 @@ ui <- fluidPage(
                         ),
                         div(
                           class = "footer",
-                          
-                          
+
+
                           tags$a(href = "https://github.com", target = "_blank",
                                  tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
                         )
@@ -944,12 +944,12 @@ ui <- fluidPage(
                           ),
                           div(
                             class = "foter",
-                            
-                            
+
+
                             tags$a(href = "https://github.com", target = "_blank",
                                    tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
                           )
-                          
+
                  )
       )
   )
@@ -966,7 +966,7 @@ server <- function(input, output,session) {
   output$Text_latex <- renderText({
     print(paste0("Before you begin playing our American roulette, it's crucial to understand the risks involved. To help you comprehend these risks, we will explain the mathematical expectation of winning in this game. The mathematical expectation can be calculated using the following formula:
 $$\\frac{\\text{Expected number of positive outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Gain for positive outcomes} + \\frac{\\text{Expected number of negative outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Losses for negative outcomes} $$
-Let's consider a scenario where you play  1$ only on one number. In this case, the expected gain can be calculated as follows: $$\\frac{1}{38}\\cdot 5 + \\frac{37}{38}\\cdot (-1)  =\\frac{-2}{38} = -0.0526 = 5.26\\% $$ This means that on average, for every round played, you can expect to lose 5.26% of your balance."))
+Let's consider a scenario where you play  1$ only on one number. In this case, the expected gain can be calculated as follows: $$\\frac{1}{38}\\cdot 35 + \\frac{37}{38}\\cdot (-1)  =\\frac{-2}{38} = -0.0526 = 5.26\\% $$ This means that on average, for every round played, you can expect to lose 5.26% of your balance."))
   })
 
 
@@ -1474,7 +1474,7 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
 
 
 
-  
+
   output$rouletteHistory_red <- renderText({
     if (!is.null(roulette$winningSlot)){
       for (i in 1:length(roulette$history)) {
@@ -1482,17 +1482,17 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
           list_red <- c(list_red, roulette$history[i])
         }
       }
-      
-      
-      
+
+
+
       paste(paste(list_red, collapse = "-"))
     } else {
       return(invisible(NULL))
     }
   })
-  
-  
-  
+
+
+
   output$rouletteHistory_black <- renderText({
     if (!is.null(roulette$winningSlot)){
       for (i in 1:length(roulette$history)) {
@@ -1500,13 +1500,13 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
           list_black <- c(list_black, roulette$history[i])
         }
       }
-      
+
       paste(paste(list_black, collapse = "-"))
     } else {
       return(invisible(NULL))
     }
   })
-  
+
   output$rouletteHistory_green <- renderText({
     if (!is.null(roulette$winningSlot)){
       for (i in 1:length(roulette$history)) {
@@ -1514,7 +1514,7 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
           list_green <- c(list_red, roulette$history[i])
         }
       }
-      
+
       paste(paste(list_green, collapse = "-"))
     } else {
       return(invisible(NULL))
@@ -1550,7 +1550,7 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
                                                                     roulette,
                                                                     input$tot_spin)
                      text_strategy = "The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern.
-                     It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on black.
+                     It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on even.
                      Initially, you place a bet on even. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.
                      The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet.
                      However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
@@ -1582,7 +1582,8 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
                      Similarly to the previous strategies, players typically choose even-money bets in games.
                      To begin, you place an initial bet on red. If you win, you double your bet on the next spin. If you win again, you continue doubling your bet for subsequent wins. The idea behind the Reverse Martingale strategy is to capitalize on winning streaks and maximize profits during favorable runs.
                      Unlike the Martingale strategy, where losses can escalate rapidly, the Reverse Martingale aims to exploit winning streaks while limiting losses during unfavorable runs. By doubling the bet after each win, the strategy allows players to potentially accumulate larger winnings while keeping their original investment intact.
-                     However, it's important to note that the Reverse Martingale strategy also carries inherent risks. Winning streaks are never guaranteed, and a sudden loss can wipe out previous profits. It is crucial to exercise caution and establish predetermined win targets or loss limits to protect against potential downturns.
+                     However, it's important to note that the Reverse Martingale strategy also carries inherent risks. Winning streaks are never guaranteed, and a sudden loss can wipe out previous profits. And in this example, since the roulette is 'flawed' because of the 0 and 00, the probability of winning is always less than 50%. Because of that, when the numbers of rounds goes to infinity, our expected balance is 0.
+                     It is crucial to exercise caution and establish predetermined win targets or loss limits to protect against potential downturns.
                      Moreover, table limits and a finite bankroll can limit the effectiveness of the Reverse Martingale strategy. It is important to consider these factors and evaluate the suitability of this approach within the specific context of a real-world casino setting.
                      While the Reverse Martingale strategy can be an appealing betting system, it is crucial to understand its limitations and potential risks. Careful consideration and proper bankroll management are essential to make informed decisions and ensure a responsible gambling experience.
                      "},
