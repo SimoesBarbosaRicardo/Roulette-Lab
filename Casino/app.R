@@ -19,6 +19,9 @@ library(devtools)
 # I. bettingTable Setup ---------------------------------------------------
 # Setup of the bettingTable, dataframe that keeps track of slots on the table
 
+list_red=list()
+list_black=list()
+list_green=list()
 
 
 slotNum <- c(0, "00" , c(1:36))
@@ -865,6 +868,10 @@ ui <- fluidPage(
                                    textOutput("rouletteWinningNumber"),
                                    textOutput("rouletteHistoryText"),
                                    textOutput("rouletteHistory"),
+                                   textOutput("rouletteHistory_red"),
+                                   textOutput("rouletteHistory_black"),
+                                   textOutput("rouletteHistory_green"),
+                                   
                                    # we show our balance of money
                                    textOutput("generalbalance")
                             ),
@@ -1445,15 +1452,53 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
   })
 
 
-  #For the roulette history of the last 10 numbers
-  output$rouletteHistory <- renderText({
-    if (!is.null(roulette$winningSlot)) {
-      paste(paste(roulette$history, collapse = "-"))
+
+  
+  output$rouletteHistory_red <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (roulette$history[i] %in% c(1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36)) {
+          list_red <- c(list_red, roulette$history[i])
+        }
+      }
+      
+      
+      
+      paste(paste(list_red, collapse = "-"))
     } else {
       return(invisible(NULL))
     }
   })
-
+  
+  
+  
+  output$rouletteHistory_black <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (roulette$history[i] %in% c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35)) {
+          list_black <- c(list_black, roulette$history[i])
+        }
+      }
+      
+      paste(paste(list_black, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
+  
+  output$rouletteHistory_green <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (!(roulette$history[i] %in% c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35,1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36))) {
+          list_green <- c(list_red, roulette$history[i])
+        }
+      }
+      
+      paste(paste(list_green, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
 
 
   # this is in order for the UI to display or updated balance.

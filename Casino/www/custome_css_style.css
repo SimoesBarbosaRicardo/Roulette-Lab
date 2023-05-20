@@ -269,3 +269,35 @@ footer p {
 .green-text {
   color: green;
 }
+
+
+
+
+/* Page 2 : Roulette                 *    /
+
+/* Left panel*/
+
+.col-sm-4 {
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 30px !important;
+}
+
+/* Left panel, line of the winning number*/
+#rouletteHistory_red.shiny-text-output{
+  color: red!important;
+  font-weight: bold;
+ 
+}
+#rouletteHistory_black.shiny-text-output{
+  color: black!important;
+  font-weight: bold;
+ 
+}
+#rouletteHistory_green.shiny-text-output{
+  color: green!important;
+  font-weight: bold;
+ 
+}
+
