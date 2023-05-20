@@ -819,7 +819,13 @@ ui <- fluidPage(
                               )
                           ),
 # Text with LATEX
-                          withMathJax(textOutput("Text_latex")),
+                          withMathJax(
+                            div(
+                              style = "font-size: 20px;",
+                              textOutput("Text_latex"),
+                              )
+                            )
+
 
                           ),
 
