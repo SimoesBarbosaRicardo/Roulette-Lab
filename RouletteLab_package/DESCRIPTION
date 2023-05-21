@@ -7,7 +7,8 @@ Authors@R: c(
     person("Pablo", "Huber", role = "aut"),
     person("Luca", "Bortolotti", role = "aut"),
     person("Oscar", "Wieland", role = "aut"))
-Imports: ggplot2,
+Imports: 
+        ggplot2,
         shinyjs,
         shiny,
         DT,
