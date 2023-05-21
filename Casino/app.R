@@ -963,7 +963,9 @@ ui <- fluidPage(
 
 
                             tags$a(href = "https://github.com", target = "_blank",
-                                   tags$img(src = "Github_GOLD.png", alt = "Clickable Image"))
+                                   tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
+                                   ),
+                            span(class = "foter-text", "Simões Barbosa Ricardo, Huber Pablo, Bortolotti Luca, Wieland Oscar")
                           )
 
                  )
