@@ -819,12 +819,12 @@ ui <- fluidPage(
                                        Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
               ),
               tags$p(
-                "For our project, we drew inspiration from and utilized a portion of code from another Shiny app. By incorporating this code into our own app, we were able to leverage its functionality and enhance the overall user experience.We are grateful to the original app's creators for sharing their code and contributing to our project's success. ",
+                "For our project, we drew inspiration from and utilized a portion of code from another Shiny app. By incorporating this code into our own app, we were able to leverage its functionality and enhance the overall user experience. We are grateful to the original app's creators for sharing their code and contributing to our project's success. ",
                 tags$a(href = "https://github.com/ignatkulinka/americanRoulette", "Click here"),
                 " to visit his github and learn more about his shiny app."
               ),
 
-              tags$h2("Strategies"),
+              tags$h2("Winning the roulette"),
               # Text with LATEX
               withMathJax(div(style = "font-size: 20px;overflow-x: auto;",
                               textOutput("Text_latex"), ))
@@ -899,7 +899,7 @@ ui <- fluidPage(
                             #Roulette gifs:
 
                             column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
-                                   actionButton("spin", "Spin Roulette"),
+                                   actionButton("spin", "Spin the wheel"),
                                    tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
                                    uiOutput("gifDisplay"),
 
