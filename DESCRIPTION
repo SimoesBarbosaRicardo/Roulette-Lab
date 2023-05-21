@@ -4,9 +4,9 @@ Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
     person("Ricardo", "Barbosa", email = "barbosa.ricardo10@gmail.com", role = c("aut","cre")),
-    person("Stephane", "Guerrier", role = "aut"),
-    person("Roberto", "Molinari", role = "aut"),
-    person("Matthew", "Beckman", role = "aut")
+    person("Pablo", "Huber", role = c("aut","cre")),
+    person("Luca", "Bortolotti", role = "aut"),
+    person("Oscar", "Wieland", role = "aut")
     )
     
 Import: ggplot2,
