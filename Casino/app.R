@@ -960,8 +960,6 @@ ui <- fluidPage(
                           ),
                           div(
                             class = "foter",
-
-
                             tags$a(href = "https://github.com", target = "_blank",
                                    tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
                                    ),
