@@ -814,6 +814,12 @@ ui <- fluidPage(
                                        players but also contribute to the broader understanding of optimal strategies in the casino gaming industry.
                                        Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
               ),
+              tags$p(
+                "For our project, we drew inspiration from and utilized a portion of code from another Shiny app. By incorporating this code into our own app, we were able to leverage its functionality and enhance the overall user experience.We are grateful to the original app's creators for sharing their code and contributing to our project's success. ",
+                tags$a(href = "https://github.com/ignatkulinka/americanRoulette", "Click here"),
+                " to visit his github and learn more about his shiny app."
+              ),
+
               tags$h2("Strategies"),
               # Text with LATEX
               withMathJax(div(style = "font-size: 20px;overflow-x: auto;",
