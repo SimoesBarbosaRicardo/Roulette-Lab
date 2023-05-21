@@ -878,17 +878,10 @@ ui <- fluidPage(
                                        "Choose chip color:",
                                        choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
                                        selected = "navy"
-                                     ),
-                                     hr(),
+                                     )
 
-                                     #Results section
-                                     h4("Results"),
-                                     textOutput("rouletteWinningNumber"),
-                                     textOutput("rouletteHistoryText"),
-                                     textOutput("rouletteHistory"),
-                                     textOutput("rouletteHistory_red"),
-                                     textOutput("rouletteHistory_black"),
-                                     textOutput("rouletteHistory_green")
+
+
 
 
                                    )
@@ -898,7 +891,17 @@ ui <- fluidPage(
                             column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
                                    actionButton("spin", "Spin Roulette"),
                                    tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
-                                   uiOutput("gifDisplay")
+                                   uiOutput("gifDisplay"),
+
+                                   br(),
+                                   #Results section
+                                   h4("Results"),
+                                   textOutput("rouletteWinningNumber"),
+                                   textOutput("rouletteHistoryText"),
+                                   textOutput("rouletteHistory"),
+                                   textOutput("rouletteHistory_red"),
+                                   textOutput("rouletteHistory_black"),
+                                   textOutput("rouletteHistory_green")
 
                             ),
                             #Roulette table:
