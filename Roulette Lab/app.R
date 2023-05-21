@@ -2,15 +2,13 @@
 # Notre app -----
 
 # Libraries ----
-require(ggplot2)
+library(ggplot2)
 library(shinyjs)
 library(shiny)
-require(DT)
-require(shiny)
-require(ggplot2)
-require(stringr)
-require(dplyr)
-require(data.table)
+library(DT)
+library(stringr)
+library(dplyr)
+library(data.table)
 library(tidyverse)
 library(DescTools)
 library(microbenchmark)
