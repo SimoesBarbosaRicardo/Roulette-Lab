@@ -941,15 +941,18 @@ ui <- fluidPage(
 
                           #Graphs
                           mainPanel(br(),
-                                    h4("Win Rate per simulation"),
+                                    h3("Win Rate per simulation"),
                                     withSpinner(plotOutput("win_rate_plot", height = "200px"), type = 6, color = "#F8AF36"),
                                     br(),
                                     textOutput("text_win_rate"),
                                     br(),
-                                    h4("Evolution of the Balance over the number of spins"),
+                                    h3("Evolution of the Balance over the number of spins"),
                                     withSpinner(plotOutput("balance_plot", height = "400px"), type = 6, color = "#F8AF36"),
                                     br(),
-                                    textOutput("textstrategy")
+                                    h3("Strategy description"),
+                                    textOutput("textstrategy"),
+                                    br(),
+                                    br()
 
                           ),
                           div(
