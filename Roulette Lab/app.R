@@ -1,5 +1,11 @@
 
-# Notre app -----
+# Roulette lab -----
+# This is a Shiny web application that serves as a American roulette laboratory.
+# You can run the applicaiton by clicking on "Run App" or clicking on CTRL + SHIFT + Enter
+# This app was made by Ricardo Alexandre Simoes Barbosa, Luca Bortolotti, Oscar Wieland
+# and Pablo Huber.
+
+
 
 # Libraries ----
 library(ggplot2)
