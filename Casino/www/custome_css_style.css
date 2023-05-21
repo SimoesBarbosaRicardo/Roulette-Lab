@@ -100,7 +100,7 @@
 /* autres éléments de la navbar */
 .navbar-default .navbar-nav>li>a {
     color: grey;
-    transition: color 0.3s;
+    transition: color 0.4s;
 }
 
 /* autres éléments de la navbar couleur quand on séléctione la séction */
@@ -132,11 +132,6 @@
 
 /* Second Paragraph: Strategies */
 
-#Text_latex.shiny-text-output.shiny-bound-output {
-  margin-left: 40px;
-  margin-right: 40px;
-
-}
 
 
 
@@ -151,7 +146,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
+
 }
 
 .row > div:nth-child(1) > div:nth-child(1) > div:nth-child(1){
@@ -167,13 +162,13 @@
   justify-content: center;
   align-items: center;
 }
-  
+
 /* Minimum width for chips color selection */
 .form-group:nth-child(14) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1){
   min-width: 100px;
 }
- 
-  
+
+
 #startbalance{
    text-align: center;
 }
@@ -184,12 +179,42 @@
 /* Left panel*/
 .col-sm-4 {
   position: relative;
-  
+
   min-height: 1px;
   padding-right: 15px;
   padding-left: 30px !important;
 }
 
+
+#bet1
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet2
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet3
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet4
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet5
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
 
 
 
@@ -213,6 +238,30 @@
   font-weight: bold;
 
 }
+
+/* Middle panel*/
+
+
+/* Page 3 : Statistics                 */
+
+/* Left panel: variables selections*/
+
+
+/* Right panel: graphs and text*/
+
+#text_win_rate {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+#textstrategy {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
 
 /* Footer*/
 
