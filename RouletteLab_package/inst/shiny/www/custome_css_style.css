@@ -1,0 +1,329 @@
+
+
+.section_HP{
+  min-width: 900px;
+
+}
+
+.box {
+          border-radius: 10px;
+          border: 1px solid #ccc;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          margin-bottom: 20px;
+          min-width: 900px;
+          margin-right: 40px;
+          margin-left: 40px;
+        }
+
+        .box img {
+          border-radius: 10px;
+          max-width: 100%;
+          height: auto;
+        }
+
+        .content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+
+        }
+
+
+
+        .text_section_HP {
+          max-width: 70%;
+
+        }
+
+        .text_section_HP h2 {
+          font-family: "Arial Black", sans-serif; /* Change the font to a casino-like style */
+          font-size: 44px;
+
+          margin-top: 40px;
+        }
+
+        .text_section_HP p {
+          font-size: 25px;
+
+        }
+
+
+
+
+/* supress the padding left and right of the navbar */
+.container-fluid{
+  padding: 0;
+}
+
+.navbar{
+  box-shadow: 0px 5px 5px black;
+
+}
+
+.navbar-static-top{
+
+    padding-left: 20px ;
+}
+.navbar-default {
+          font-family: "Arial Black", sans-serif; /* Change the font to a casino-like style */
+          font-size: 25px;
+
+
+
+          background-color: black;
+          border-color: black; /* au cas ou on décide de mettre une border je le met just en noir*/
+}
+
+
+
+
+/* nom du casino dans la navbar */
+
+.navbar-title>a{
+  font-size: 25px;
+  color: white !important;
+  text-decoration: none;
+
+}
+/* couleur quand on passe la souris sur la navbar du background et des lettres */
+.navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
+  color: #196c2e;
+  background-color: black; /* set to black so it does not change when we hover */
+}
+
+
+/* autres éléments de la navbar */
+.navbar-default .navbar-nav>li>a {
+    color: grey;
+    transition: color 0.4s;
+}
+
+/* autres éléments de la navbar couleur quand on séléctione la séction */
+.navbar-default .navbar-nav>.active>a{
+
+    background-color: #F8AF36;
+    box-shadow: 0px 5px 5px #F8AF36; /* couvre la box shadow noir  */
+}
+
+
+
+/* Change text color on hover */
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav>li>a,
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+  color: grey; /* Replace with your desired color */
+}
+
+/* Override text color for selected and active links */
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .active > a:hover {
+  color: white; /* Set the desired text color for selected and active links */
+      background-color: #F8AF36;
+    box-shadow: 0px 6px 5px #F8AF36;
+}
+
+/* Second Paragraph: Strategies */
+
+
+
+
+
+
+
+/*        Page 2 : Roulette                 */
+
+
+
+/* body settings to center all elements (left side of the page)*/
+.row > div:nth-child(1) > div:nth-child(1){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.row > div:nth-child(1) > div:nth-child(1) > div:nth-child(1){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-group:nth-child(14){
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Minimum width for chips color selection */
+.form-group:nth-child(14) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1){
+  min-width: 100px;
+}
+
+
+#startbalance{
+   text-align: center;
+}
+
+
+
+
+/* Left panel*/
+.col-sm-4 {
+  position: relative;
+
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 30px !important;
+}
+
+
+#bet1
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet2
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet3
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet4
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+#bet5
+{
+  background-color: #F8AF36; !important;
+  border-color: ; #F8AF36; !important;
+}
+
+
+
+
+
+
+
+/* Left panel, line of the winning number*/
+#rouletteHistory_red.shiny-text-output{
+  color: red!important;
+  font-weight: bold;
+
+}
+#rouletteHistory_black.shiny-text-output{
+  color: black!important;
+  font-weight: bold;
+
+}
+#rouletteHistory_green.shiny-text-output{
+  color: green!important;
+  font-weight: bold;
+
+}
+
+/* Middle panel*/
+
+
+/* Page 3 : Statistics                 */
+
+/* Left panel: variables selections*/
+
+
+/* Right panel: graphs and text*/
+
+#text_win_rate {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+#textstrategy {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+#text_balance1 {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+#text_balance2 {
+    font: 16px/24px Arial,Verdana,sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+/* Footer*/
+
+
+
+.footer {
+      background-color: #000000;
+
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      margin-top: 40px;
+      padding: 10px;
+      text-align: center;
+
+    }
+
+    .footer img {
+      max-width: 100%;
+      max-height: 100px;
+    }
+    .footer-text {
+  color: white;
+
+    }
+
+
+    /* Footer for statistic section: Unable to put the same footer as before, very weird, need to use display flex*/
+    .foter {
+      background-color: #000000;
+      display: flex;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      margin-top: 40px;
+      padding: 10px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+
+    }
+
+
+    .foter img {
+      max-width: 100%;
+      max-height: 100px;
+    }
+
+    .foter-text {
+  color: white;
+
+    }

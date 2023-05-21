@@ -1,0 +1,1851 @@
+
+# Roulette lab -----
+# This is a Shiny web application that serves as a American roulette laboratory.
+# You can run the applicaiton by clicking on "Run App" or clicking on CTRL + SHIFT + Enter
+# This app was made by Ricardo Alexandre Simoes Barbosa, Luca Bortolotti, Oscar Wieland
+# and Pablo Huber.
+
+
+
+# Libraries ----
+library(ggplot2)
+library(shinyjs)
+library(shiny)
+library(DT)
+library(stringr)
+library(dplyr)
+library(data.table)
+library(tidyverse)
+library(DescTools)
+library(microbenchmark)
+library(devtools)
+library(shinycssloaders)
+
+# I. bettingTable Setup ---------------------------------------------------
+# Setup of the bettingTable, dataframe that keeps track of slots on the table
+
+list_red=list()
+list_black=list()
+list_green=list()
+
+
+slotNum <- c(0, "00" , c(1:36))
+
+# On vectorise les couleurs : 3 pour vert, 2 pour noir, 1 pour rouge
+color <- c(rep(3, 2),
+           rep(c(1, 2), 5),
+           rep(c(2, 1), 4),
+           rep(c(1, 2), 5),
+           rep(c(2, 1), 4))
+
+# on vectorise les nombres pairs : 1 pour pair et le reste 0
+even <- c(rep(0, 2), rep(c(0,1), 18))
+# on vectorise les nombres impairs : 1 pour impair et le reste 0
+odd <- c(rep(0, 2), rep(c(1,0), 18))
+# 0 et 00 sont ni impairs ni pairs. donc 0.
+
+# pareil on vectorise low et high
+low <- c(rep(0,2), rep(1, 18), rep(0, 18))
+high <- c(rep(0,2), rep(0, 18), rep(1, 18))
+
+
+snakeBet <- c(rep(0,2),
+              rep(c(1,0,0,0), 2),
+              1, 0, 0,
+              rep(c(1,0), 3),
+              0,
+              rep(c(1,0,0,0), 2),
+              1, 0, 0,
+              rep(c(1,0),3),
+              0)
+
+dozen <- c(rep(0,2),
+           rep(1,12),
+           rep(2,12),
+           rep(3,12))
+
+column <- c(rep(0,2),
+            rep(c(1,2,3),12))
+
+bettingTable <- data.frame(slotNum, color, even,
+                           odd, low, high,
+                           snakeBet, dozen, column)
+
+
+
+# II. Roulette Table Graphing Coordinates ---------------------------------
+
+# A. Coordinates for the regular slots section of the roulette table
+df <- expand.grid(x = seq(0,4,2), y = seq(0,22,2))
+df$z <- c(rep(c(1, 2), 3), 2, 2, 1, 1,
+          rep(c(2, 1), 4),
+          rep(c(1, 2), 3), 2, 2, 1, 1,
+          rep(c(2, 1), 4))
+
+# B. Pentagons for the 0 and 00 slots on the table
+zeroPentagon <- data.frame(z = rep(3,5),
+                           x = c(-1, -1, 0.5, 2, 2),
+                           y = c(23, 24, 25, 24, 23))
+
+doubleZeroPentagon <- data.frame(z = rep(3,5),
+                                 x = c(2, 2, 3.5, 5, 5),
+                                 y = c(23, 24, 25, 24, 23))
+
+# C. Outside bets bounding boxes
+thirdTwelveSlots <- data.frame(x = c(-1, -1, -3, -3),
+                               y = c(-1, 7, 7, -1),
+                               z = rep(3, 4))
+
+secondTwelveSlots <- data.frame(x = c(-1, -1, -3, -3),
+                                y = c(7, 15, 15, 7),
+                                z = rep(3, 4))
+
+firstTwelveSlots <- data.frame(x = c(-1, -1, -3, -3),
+                               y = c(15, 23, 23, 15),
+                               z = rep(3, 4))
+
+ninteenThirtysixSlots <- data.frame(x = c(-3, -3, -5, -5),
+                                    y = c(-1, 3, 3, -1),
+                                    z = rep(3, 4))
+
+oddSlots <- data.frame(x = c(-3, -3, -5, -5),
+                       y = c(3, 7, 7, 3),
+                       z = rep(3, 4))
+
+blackSlots <- data.frame(x = c(-3, -3, -5, -5),
+                         y = c(7, 11, 11, 7),
+                         z = rep(2, 4))
+
+redSlots <- data.frame(x = c(-3, -3, -5, -5),
+                       y = c(11, 15, 15, 11),
+                       z = rep(1, 4))
+
+evenSlots <- data.frame(x = c(-3, -3, -5, -5),
+                        y = c(15, 19, 19, 15),
+                        z = rep(3, 4))
+
+oneToEighteenSlots <- data.frame(x = c(-3, -3, -5, -5),
+                                 y = c(19, 23, 23, 19),
+                                 z = rep(3, 4))
+
+twoToOne1 <- data.frame(x = c(-1, -1, 1, 1),
+                        y = c(-1, -3, -3, -1),
+                        z = rep(3,4))
+
+twoToOne2 <- data.frame(x = c(1, 1, 3, 3),
+                        y = c(-1, -3, -3, -1),
+                        z = rep(3,4))
+
+twoToOne3 <- data.frame(x = c(3, 3, 5, 5),
+                        y = c(-1, -3, -3, -1),
+                        z = rep(3,4))
+
+
+# III. Coordinates for Labels ---------------------------------------------
+
+annotationCoords <- data.frame(x = rep(c(0:2), 12),
+                               y = rep(c(0:11), 1, each = 3))
+
+zerosAnnotationCoords <- data.frame(x = c(.5, 3.5),
+                                    y = c(23.8, 23.8))
+
+columnAnnotationCoords <- data.frame(x = seq(0,4,2),
+                                     y = rep(-2,3))
+
+# Labels for the slots
+annotationLabels <- c(34, 35, 36,
+                      31, 32, 33,
+                      28, 29, 30,
+                      25, 26, 27,
+                      22, 23, 24,
+                      19, 20, 21,
+                      16, 17, 18,
+                      13, 14, 15,
+                      10, 11, 12,
+                      7, 8, 9,
+                      4, 5, 6,
+                      1, 2, 3)
+
+
+# IV. Definition of Bets --------------------------------------------------
+# Below are the definitions of all the possible bets. The parameters defined:
+#  x,y: coordinates for the table/ggplot2
+#  b1 - b6: the numbers included in the bet
+#  payOut: the payout for winning the bet
+#  type: name of the bet
+# A. Inside Bets
+#  1. Straight up / Single Bet (0 and 00 included): Bet on any single number
+slotsToBets <- data.frame(x = c(rep(c(0, 2, 4), 12), 0.5, 3.5),
+                          y = c(rep(seq(0, 22, 2), 1, each = 3), 23.9, 23.9),
+                          b1 = c(34, 35, 36,
+                                 31, 32, 33,
+                                 28, 29, 30,
+                                 25, 26, 27,
+                                 22, 23, 24,
+                                 19, 20, 21,
+                                 16, 17, 18,
+                                 13, 14, 15,
+                                 10, 11, 12,
+                                 7, 8, 9,
+                                 4, 5, 6,
+                                 1, 2, 3,
+                                 0, "00"),
+                          b2 = rep(NA, 38),
+                          b3 = rep(NA, 38),
+                          b4 = rep(NA, 38),
+                          b5 = rep(NA, 38),
+                          b6 = rep(NA, 38),
+                          payOut = rep(35, 38),
+                          type = "Single",
+                          stringsAsFactors = FALSE)
+
+#  2. Split Bet: Bet on any two adjoining numbers vertical/horizontal
+splitBets <- data.frame(x = c(rep(1, 12),
+                              rep(3, 12),
+                              rep(c(0, 2, 4), each = 11)),
+                        y = c(rep(seq(0, 22, 2), 2),
+                              rep(seq(1,22,2), 3)),
+                        b1 = c(seq(34, 1, -3),
+                               seq(35, 2, -3),
+                               seq(31, 1, -3),
+                               seq(32, 2, -3),
+                               seq(33, 3, -3)),
+                        b2 = c(seq(35, 2, -3),
+                               seq(36, 3, -3),
+                               seq(34, 4, -3),
+                               seq(35, 5, -3),
+                               seq(36, 6, -3)),
+                        b3 = rep(NA, 57),
+                        b4 = rep(NA, 57),
+                        b5 = rep(NA, 57),
+                        b6 = rep(NA, 57),
+                        payOut = rep(17, 57),
+                        type = "Split",
+                        stringsAsFactors = FALSE)
+
+# 3. Square Bets: Bet on any 4 adjoining numbers in a block
+quadBets <- data.frame(x = c(rep(1, 11),
+                             rep(3, 11)),
+                       y = c(seq(1, 22, 2),
+                             seq(1, 22, 2)),
+                       b1 = c(seq(31, 1, -3),
+                              seq(32, 2, -3)),
+                       b2 = c(seq(32, 2, -3),
+                              seq(33, 3, -3)),
+                       b3 = c(seq(34, 4, -3),
+                              seq(35, 5, -3)),
+                       b4 = c(seq(35, 5, -3),
+                              seq(36, 6, -3)),
+                       b5 = rep(NA, 22),
+                       b6 = rep(NA, 22),
+                       payOut = rep(5, 22),
+                       type = "Square Bet",
+                       stringsAsFactors = FALSE)
+
+# 4. Street Bets: Bet on any three horizontal numbers in a row
+streetBets <- data.frame(x = c(rep(-1, 12),
+                               rep(5, 12)),
+                         y = c(seq(0, 22, 2),
+                               seq(0, 22, 2)),
+                         b1 = rep(seq(34, 1, -3), 2),
+                         b2 = rep(seq(35, 2, -3), 2),
+                         b3 = rep(seq(36, 3, -3), 2),
+                         b4 = rep(NA, 24),
+                         b5 = rep(NA, 24),
+                         b6 = rep(NA, 24),
+                         payOut = rep(5, 24),
+                         type = "Street Bet",
+                         stringsAsFactors = FALSE)
+
+# 5. Line Bets: Bet on any six numbers from two adjacent horizontal row
+lineBets <- data.frame(x = c(rep(-1, 11),
+                             rep(5, 11)),
+                       y = c(seq(1, 21, 2),
+                             seq(1, 21, 2)),
+                       b1 = rep(seq(31, 1, -3), 2),
+                       b2 = rep(seq(32, 2, -3), 2),
+                       b3 = rep(seq(33, 3, -3), 2),
+                       b4 = rep(seq(34, 4, -3), 2),
+                       b5 = rep(seq(35, 5, -3), 2),
+                       b6 = rep(seq(36, 6, -3), 2),
+                       payOut = rep(5, 22),
+                       type = "Line Bet",
+                       stringsAsFactors = FALSE)
+
+
+# B. Outside Bets
+#  1. Column Bets: Bet on all numbers in columns 1 - 3
+columnBets <- data.frame(x = seq(0,4,2),
+                         y = rep(-2,3),
+                         b1 = c("1st Column",
+                                "2nd Column",
+                                "3rd Column"),
+                         b2 = rep(NA, 3),
+                         b3 = rep(NA, 3),
+                         b4 = rep(NA, 3),
+                         b5 = rep(NA, 3),
+                         b6 = rep(NA, 3),
+                         payOut = rep(2,3),
+                         type = "Column Bet",
+                         stringsAsFactors = FALSE)
+
+
+#  2. Dozen Bets: 1st through 3rd dozen bets
+dozenBets <- data.frame(x = c(rep(-2,15)),
+                        y = c(seq(0, 6, 1.5),
+                              seq(8, 14, 1.5),
+                              seq(16, 22, 1.5)),
+                        b1 = c(rep("3rd Dozen", 5),
+                               rep("2nd Dozen", 5),
+                               rep("1st Dozen", 5)),
+                        b2 = rep(NA, 15),
+                        b3 = rep(NA, 15),
+                        b4 = rep(NA, 15),
+                        b5 = rep(NA, 15),
+                        b6 = rep(NA, 15),
+                        payOut = rep(2,15),
+                        type = "Dozen Bet",
+                        stringsAsFactors = FALSE)
+
+#  3. Outside Bets: Low, High, Even, Odd, Red, Black
+outsideBets <- data.frame(x = rep(-4, 12),
+                          y = c(0.3, 1.7,
+                                4.2, 5.7,
+                                8.3, 9.8,
+                                12.2, 13.7,
+                                16.3, 17.8,
+                                20.2, 21.7),
+                          b1 = c(rep("High", 2),
+                                 rep("Odd", 2),
+                                 rep("Black", 2),
+                                 rep("Red", 2),
+                                 rep("Even", 2),
+                                 rep("Low", 2)),
+                          b2 = rep(NA, 12),
+                          b3 = rep(NA, 12),
+                          b4 = rep(NA, 12),
+                          b5 = rep(NA, 12),
+                          b6 = rep(NA, 12),
+                          payOut = rep(1, 12),
+                          type = c(rep("High", 2),
+                                   rep("Odd", 2),
+                                   rep("Black", 2),
+                                   rep("Red", 2),
+                                   rep("Even", 2),
+                                   rep("Low", 2)),
+                          stringsAsFactors = FALSE)
+
+# G. Trio Bets: Bets on any three slot combinations including 0 or 00
+trioBets <- data.frame(x = c(1, 3),
+                       y = c(23),
+                       b1 = c(0, "00"),
+                       b2 = c(1, 2),
+                       b3 = c(2, 3),
+                       b4 = rep(NA, 2),
+                       b5 = rep(NA, 2),
+                       b6 = rep(NA, 2),
+                       payOut = rep(11, 2),
+                       type = "Trio Bet",
+                       stringsAsFactors = FALSE)
+
+# H. Top Line: Bet on 0-00-1-2-3
+topLineBets <- data.frame(x = c(-1, 5),
+                          y = c(23),
+                          b1 = rep(0, 2),
+                          b2 = rep("00", 2),
+                          b3 = rep(1, 2),
+                          b4 = rep(2, 2),
+                          b5 = rep(3, 2),
+                          b6 = rep(NA, 2),
+                          payOut = rep(6, 2),
+                          type = "Top Line Bet",
+                          stringsAsFactors = FALSE)
+
+# # G. Basket: bet on 0-00-2
+# basketBets <- data.frame(x = c(),
+#                          y = c(),
+#                          b1 = c(0),
+#                          b2 = c("00"),
+#                          b3 = c(2),
+#                          b4 = c(NA),
+#                          b5 = c(NA),
+#                          b6 = c(NA),
+#                          payOut = rep(6, 2),
+#                          type = "Top Line Bet",
+#                          stringsAsFactors = FALSE)
+
+# Combine all bet information in one dataframe
+clickable <- rbind(columnBets, slotsToBets, splitBets,
+                   dozenBets, outsideBets, quadBets,
+                   lineBets, streetBets, trioBets,
+                   topLineBets)
+
+# Grab nonrepeated entries in columns 3:10
+# to use with random bet (i.e. pick a bet from here)
+uniqueBets <- clickable[!duplicated(clickable[3:10]),]
+
+
+# V. Colors and Helpers for ggplot2 ---------------------------------------
+
+# A. Chip text color based on chip color
+contrast_color <- function(color, verbose = FALSE){
+
+  # 1. Expect a color within colors()
+  # if(!(tolower(color) %in% colors()[grepl("^[^0-9]*$", colors())])) {
+  #   if(verbose){
+  #     print("Input color not valid! Using white by default")
+  #   }
+  #   return("white")
+  # }
+
+  # 2. Calculate color luminance
+  wt <- c(0.2126, 0.7152, 0.0722)
+  luminance <- colSums(col2rgb(color) * wt) / 255
+
+  # 3. Determine font color best suited for the chip color
+  return(ifelse(luminance > 0.5, "black", "white"))
+}
+
+# B. Colors for ggplot2 roulette table
+cols <- c("1" = "red", "2" = "black", "3" = "darkgreen", "4" = "white")
+colsTwo <- c("1" = "white", "2" = "white", "3" = "white", "4" = rgb(0,0,0,0))
+
+# C. Theme elements for ggplot2 roulette table
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank(),
+  plot.margin = unit(c(1,1,1,1), "cm"),
+  legend.position = "none"
+)
+
+
+# D. Table rendering function:
+
+renderTable <- function() {
+  rouletteTable <- ggplot() +
+    geom_tile(data = df, aes(x, y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    geom_polygon(data = twoToOne1, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = twoToOne2, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = twoToOne3, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = oneToEighteenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = redSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = evenSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = oddSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = blackSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = thirdTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = secondTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = firstTwelveSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = ninteenThirtysixSlots, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 2) +
+    geom_polygon(data = zeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    geom_polygon(data = doubleZeroPentagon, aes(x = x, y = y, fill = factor(z), color = factor(z)), linewidth = 1.5) +
+    scale_fill_manual(values = cols) +
+    scale_color_manual(values = colsTwo) +
+    # 1-3: white circles; 4: transparent
+    #geom_circle(aes(x0=c(df$x,0.5, 3.5, columnBets$x, splitBets$x, dozenBets$x,
+    # outsideBets$x, quadBets$x, lineBets$x, streetBets$x, trioBets$x, topLineBets$x), y0=c(df$y, 23.9, 23.9, columnBets$y,
+    # splitBets$y, dozenBets$y, outsideBets$y, quadBets$y, lineBets$y, streetBets$y, trioBets$y, topLineBets$y), r=.7, color =
+    # factor('4'))) +
+    annotate("text", x = df$x, y = df$y, label = annotationLabels, color = "white") +
+    annotate("text", x = zerosAnnotationCoords$x, y = zerosAnnotationCoords$y, label = c("0", "00"),
+             color = "white") +
+    annotate("text", x = columnAnnotationCoords$x, y = columnAnnotationCoords$y, label = "2:1",
+             size = 3.5, color = "white") +
+    annotate("text", x = rep(-2, 3), y = c(3, 11, 19), label = c("3rd 12", "2nd 12", "1st 12"),
+             color = "white", angle = -90, size = 5) +
+    annotate("text", x = rep(-4, 6), y = c(1, 5, 9, 13, 17, 21),
+             label = c("19 to 36", "Odd", "Black", "Red", "Even", "1 to 18"), color = "white", angle = -90, size = 4) +
+    # show all clickable points
+    #geom_point(data = clickable, aes(x=x, y=y)) +
+    # Bets are drawn on the table here
+
+    coord_equal() +
+    theme_bw() +
+    ditch_the_axes
+
+
+  #To save an image of the plot for callibration:
+  #filename <- "rTable_plot.png"
+  #ggsave(filename, plot = rouletteTable, dpi = 300)
+
+}
+
+
+# E. Chips rendering function:
+
+renderChips <- function(rouletteTable, selectedPoints) {
+  if (!is.null(selectedPoints) && nrow(selectedPoints) > 0) {
+    rouletteTable +
+      geom_point(data = NULL, aes(x = selectedPoints$x, y = selectedPoints$y),
+                 colour = "dimgray", size = 12) +
+      geom_point(data = NULL, aes(x = selectedPoints$x, y = selectedPoints$y),
+                 colour = selectedPoints$user_color, size = 9) +
+      annotate("text", x = selectedPoints$x, y = selectedPoints$y, label = selectedPoints$betAmount,
+               color = contrast_color(selectedPoints$user_color), size = 4)
+  } else {
+    rouletteTable
+  }
+}
+
+# VI. Roulette Function & Helpers -----------------------------------------
+# A. Function responsible for picking a random number out of the slots a
+#     and returning the winning slot as well its characteristics
+
+roulette <- function(verbose = FALSE) {
+  possibleSlots <- c(0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3,
+                     24, 36, 13, 1, "00", 27, 10, 25, 29, 12, 8, 19, 31, 18,
+                     6, 21, 33, 16, 4, 23, 35, 14, 2)
+
+  slotLanded <- sample(possibleSlots, 1)
+  if (verbose){cat("Landed on:", slotLanded, "\n")}
+
+
+  tableIndex <- which(bettingTable$slotNum == slotLanded)
+  #ce which permet d'assigner à tableIndex l'élément ligne de bettingTable dont le chiffre de soltNum est le meme
+  #que slotLanded
+  #ie. définit quelle ligne est gagnante
+
+
+  # Ce return nous renvoie une liste contenant le numéro gagnant ainsi que sont
+  # appartenance aux différents types de bets
+  # e.g. le 28 est noir, pair etc.
+
+
+  return(list(slotLanded = slotLanded,
+              color = bettingTable$color[tableIndex],
+              even = bettingTable$even[tableIndex],
+              odd = bettingTable$odd[tableIndex],
+              low = bettingTable$low[tableIndex],
+              high = bettingTable$high[tableIndex],
+              snakeBet = bettingTable$snakeBet[tableIndex],
+              dozen = bettingTable$dozen[tableIndex],
+              column = bettingTable$column[tableIndex],
+              history = character()))
+
+  # roulette retourne une liste contenant le numéro gagnant ainsi que ses charactéristiques
+  # en 1 et 0.
+}
+
+
+
+# The idea of a martingale strategy is to choose an initial bet. (Normally red or black
+# or odd or even) and then when you lose, you double your bet, until you win
+# When you win you go back to your initial bet.
+
+# Where N is the number of simulations, start_amount is our balance starting amount
+# bet_amount is the amount we bet, roulette is the function we've defined above and
+# tot_spin is the amount of spins per simulation (in order to have a data frame that has
+# the same number of columns)
+# By default we're going to bet on even (It's easier that way and does not change in essence
+# the strategy. We could do it by betting on numbers, but we would have probably to simulate
+# more tries)
+
+#Also see: https://insidersbettingdigest.com/guides/the-martingale-betting-system/
+
+martingale_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {  #WIN
+        amount = amount + bet_amount
+        bet_amount = initial_bet_amount
+      } else {   #LOST
+        amount = amount - bet_amount
+        bet_amount = bet_amount * 2
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+# same logic, but we simply double our bets when we WIN
+reverse_martingale_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {
+        amount = amount + bet_amount
+        bet_amount = bet_amount*2
+      } else {
+        amount = amount - bet_amount
+        bet_amount = initial_bet_amount
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+# We noticed that this strategy "snowballs" a lot. But in the end, we always stop playing with
+# 0 in our balance. What if we induce a stop at some point. Because of the way the casino is set up
+# we will always end up (if we play a number close to infinity) losing money and ending up
+# with a balance of 0 at the end.
+reverse_martingale_strategy_stop = function(N, start_amount, bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(amount >= N*start_amount){
+        break
+      }
+      else{
+        if(bet_result==1) {
+          amount = amount + bet_amount
+          bet_amount = bet_amount*2
+        } else {
+          amount = amount - bet_amount
+          bet_amount = initial_bet_amount
+        }
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+
+
+
+#The strat follows this article:
+# https://insidersbettingdigest.com/guides/the-fibonacci-betting-system/
+
+fibonacci_strategy = function(N, start_amount, bet_amount, roulette, tot_spin) {
+
+  df_amount = data.frame(row.names = 1:N)
+  initial_bet_amount = bet_amount
+
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+
+
+  df_amount[,1] = start_amount
+
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    current_bet_amount = initial_bet_amount
+    fibo_counter = 1
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {   #WIN
+        amount = amount + current_bet_amount
+        current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
+        #A win means we move two numbers lower in the sequence, but not lower than 1
+        if (fibo_counter < 3){
+          fibo_counter = 1
+        }
+        else {
+          fibo_counter = fibo_counter - 2
+        }
+      } else {   #LOST
+        amount = amount - current_bet_amount
+        current_bet_amount <- DescTools::Fibonacci(fibo_counter)*initial_bet_amount
+        fibo_counter = fibo_counter + 1
+
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+# See:
+# https://blog.betway.com/casino/roulette-strategy-101-what-is-the-dalembert-betting-system/
+
+dalembert_strategy = function(N, start_amount,bet_amount, roulette, tot_spin) {
+  df_amount = data.frame(row.names = 1:N)
+  df_amount[,1] = start_amount
+  initial_bet_amount = bet_amount
+  # first we have to simulate for the strategy for "1 person"
+  # then we repeat for N iterations
+  # we first fill the dataframe for simulation 1
+  for(i in 1:N){
+    num_bet = 1
+    amount = start_amount
+    bet_amount = initial_bet_amount
+    while(amount > 0 && num_bet < tot_spin) {
+      bet_result = roulette()$even
+      if(bet_result==1) {   #WIN
+        amount = amount + bet_amount
+        if (bet_amount > initial_bet_amount){   #A win means we reduce our bet_amount by 1 "unit" (or initial_bet_amount)
+          #but only if we are not already at that initial_bet_amount
+          bet_amount = bet_amount - initial_bet_amount
+        }
+      }
+      else {   #LOST
+        amount = amount - bet_amount
+        bet_amount = bet_amount + initial_bet_amount #A loss means we increase our bet_amount by 1 "unit"
+      }
+      df_amount[i,num_bet+1] = amount # we fill the dataframe
+      num_bet = num_bet + 1
+    }
+  }
+  return(df_amount)
+
+}
+
+
+
+
+win_rate <- function(df_amount) {
+  win_rate <- numeric(nrow(df_amount))  # Initialize win rate vector
+
+  condition1 <- is.na(df_amount)  #compute a condition matrix for the next if
+
+
+  for (j in 1:nrow(df_amount)) {
+    number_win <- 0
+    number_losses <- 0
+
+
+    for (i in 2:ncol(df_amount)) {
+      if (condition1[j,i]) {
+        break
+      }
+      else {
+        if (df_amount[j, i - 1] > df_amount[j, i]) {
+          number_losses <- number_losses + 1  # Lost
+        }
+        else {
+          number_win <- number_win + 1  # Won
+        }
+      }
+
+      win_rate[j] <- number_win/(number_win + number_losses)  # Compute win rate at each step
+    }
+  }
+
+  return(as.data.frame(win_rate))
+
+}
+
+
+
+  # VII. UI-----------------------------------------
+
+
+
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+  #Link to .css:
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custome_css_style.css")
+  ),
+  #Curtain animation at the start:
+  shinyjs::useShinyjs(),
+  div(
+    id = "curtain",
+    style = "position: absolute; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden;",
+    img(src = "curtain.png", style = "object-fit: cover; width: 100%; height: 100%;", onclick = "shinyjs.hide('curtain'); shinyjs.show('app-interface')")
+  ),
+
+  #Now show the actual app:
+  div(id = "app-interface",
+
+      # Sidebar with a slider and selection inputs
+      # column to select the width
+      navbarPage(title = div(
+        class = "navbar-title",
+
+        tags$a(
+          href = "javascript:void(0);",
+          class = "back-link",
+          "Roulette Lab",
+          onclick = "shinyjs.hide('app-interface'); shinyjs.show('curtain')"
+        )
+      ),
+      #About Us page
+      tabPanel(
+        "About Us",
+        div(
+          class = "section_HP",
+          div(
+            class = "box",
+            tags$img(src = "Banner_3020x900.png", alt = "Horizontal Image")),
+          div(
+            class = "content",
+            div(
+              class = "text_section_HP ",
+              tags$h2("Introduction to the project"),
+              tags$p(
+                "Introducing our new basic roulette application! We are thrilled to share that we have developed a cutting-edge platform designed to test and analyze various strategies in order to uncover the most optimal ones."
+              ),
+              tags$p(
+                "Our team has invested significant time and effort into creating this innovative casino application with the goal of exploring different approaches and tactics. Through extensive research and meticulous development, we have crafted an environment that mimics the thrilling atmosphere of a real casino, enabling users to experiment and refine their strategies."
+              ),
+              tags$p(
+                "This application serves as a valuable tool for both experienced gamblers and newcomers alike, our application offers comprehensive analytics and statistical data, empowering users to track their progress, identify trends, and make informed decisions. The collected insights will not only benefit individual
+                                       players but also contribute to the broader understanding of optimal strategies in the casino gaming industry.
+                                       Join us in this exciting endeavor as we embark on a journey of discovery, pushing the boundaries of strategic thinking within the realm of casino gaming."
+              ),
+              tags$p(
+                "For our project, we drew inspiration from and utilized a portion of code from another Shiny app. By incorporating this code into our own app, we were able to leverage its functionality and enhance the overall user experience. We are grateful to the original app's creators for sharing their code and contributing to our project's success. ",
+                tags$a(href = "https://github.com/ignatkulinka/americanRoulette", "Click here"),
+                " to visit his github and learn more about his shiny app."
+              ),
+
+              tags$h2("Winning the roulette"),
+              # Text with LATEX
+              withMathJax(div(style = "font-size: 20px;overflow-x: auto;",
+                              textOutput("Text_latex"), ))
+
+            ),
+          ),
+        ),
+
+        div(
+          class = "footer",
+          tags$a(
+            href = "https://github.com",
+            target = "_blank",
+            tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
+          ),
+          span(class = "footer-text", "Simões Barbosa Ricardo, Huber Pablo, Bortolotti Luca, Wieland Oscar")
+        )
+
+
+      ),
+
+
+                 #Roulette page
+                 tabPanel("Roulette",
+                          fluidRow(
+                            #Roulette inputs
+                            column(4,
+                                   div(
+                                     style = "margin: auto; width: 80%;",
+
+                                     # Money Balance section
+                                     numericInput(
+                                       "startbalance",
+                                       label = h4("Money Balance"),
+                                       value = 1
+                                     ),
+                                     actionButton("add", "add"),
+                                     br(),
+                                     br(),
+                                     textOutput("generalbalance"),
+                                     hr(),
+
+                                     # Manual Betting section
+                                     h4("Manual Betting"),
+                                     strong("Bet Amount:"),
+                                     br(),
+                                     div( style = "display: flex; justify-content: center; align-items: center;",
+                                       actionButton("bet1", "$10"),
+                                       actionButton("bet2", "$25"),
+                                       actionButton("bet3", "$50"),
+                                       actionButton("bet4", "$100"),
+                                       actionButton("bet5", "$250"),
+                                     ),
+                                     br(),
+                                     hr(),
+
+                                     # Chip Color section
+                                     h4("Chip Color"),
+                                     selectizeInput(
+                                       "chipColor",
+                                       "Choose chip color:",
+                                       choices = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                       selected = "navy"
+                                     )
+
+
+
+
+
+                                   )
+                            ),
+                            #Roulette gifs:
+
+                            column(4, style = "text-align: center; padding-top: 50px;",    #increasing padding-top will lower the roulette gif
+                                   actionButton("spin", "Spin the wheel"),
+                                   tags$audio(id = "sound", src = "Roulette_Wheel_slow.wav"),
+                                   uiOutput("gifDisplay"),
+
+                                   br(),
+                                   #Results section
+                                   h4("Results"),
+                                   textOutput("rouletteWinningNumber"),
+                                   textOutput("rouletteHistoryText"),
+                                   textOutput("rouletteHistory"),
+                                   textOutput("rouletteHistory_red"),
+                                   textOutput("rouletteHistory_black"),
+                                   textOutput("rouletteHistory_green")
+
+                            ),
+                            #Roulette table:
+                            column(4, style = "text-align: center; padding-top: 0px;",
+                                   actionButton("reset", "Reset Bets"),
+                                   div(style = "height: 100%; display: flex; align-items: center; justify-content: flex-start;",
+                                       plotOutput("rTable", click = "plot_click", height = "750px", width = "1000px")
+                                   )
+                            )
+
+
+
+                        ),
+                        div(
+                          class = "footer",
+
+                          tags$a(href = "https://github.com",
+                                 target = "_blank",
+                                 tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
+                                 ),
+                          span(class = "footer-text", "Simões Barbosa Ricardo, Huber Pablo, Bortolotti Luca, Wieland Oscar")
+
+                        )
+                 ),
+
+                 #Statistics page
+                 tabPanel("Statistics",
+
+                          # Statistics inputs:
+                          sidebarPanel(
+                            selectizeInput("selectedStratgy", "Choose a strategy:",
+
+                                           choices = c("Martingale", "Fibonacci system", "Reverse Martingale", "Reverse Martingale stop", "D'Alembert System"),
+
+                                           selected = "Martingale"),
+                            numericInput("num_sims", "Number of simulations:", 10, min = 1),
+                            numericInput("start_bet", "Starting balance:", 100, min = 1),
+                            numericInput("bet_amount", "Starting bet amount:", 10, min = 1),
+                            numericInput("tot_spin", "Number of spins per simulation:", 50, min = 1),
+                            actionButton("run_simulation", "Run simulation")
+
+                            ),
+
+                          #Graphs
+                          mainPanel(br(),
+                                    h3("Win Rate per simulation"),
+                                    withSpinner(plotOutput("win_rate_plot", height = "200px"), type = 6, color = "#F8AF36"),
+                                    br(),
+                                    textOutput("text_win_rate"),
+                                    br(),
+                                    h3("Evolution of the Balance over the number of spins"),
+                                    withSpinner(plotOutput("balance_plot", height = "400px"), type = 6, color = "#F8AF36"),
+                                    br(),
+                                    textOutput("text_balance1"),
+                                    br(),
+                                    textOutput("text_balance2"),
+                                    br(),
+                                    h3("Strategy description"),
+                                    textOutput("textstrategy"),
+                                    br(),
+                                    br()
+
+                          ),
+                          div(
+                            class = "foter",
+                            tags$a(href = "https://github.com", target = "_blank",
+                                   tags$img(src = "Github_GOLD.png", alt = "Clickable Image")
+                                   ),
+                            span(class = "foter-text", "Simões Barbosa Ricardo, Huber Pablo, Bortolotti Luca, Wieland Oscar")
+                          )
+
+                 )
+      )
+  )
+)
+
+# VIII. Server-----------------------------------------
+
+server <- function(input, output,session) {
+
+
+  shinyjs::hide("app-interface") #used for the curtain animation at the start
+
+# Text with LATEX
+  output$Text_latex <- renderText({
+    print(paste0("Before you begin playing our American roulette, it's crucial to understand the risks involved. To help you comprehend these risks, we will explain the mathematical expectation of winning in this game. The mathematical expectation can be calculated using the following formula:
+$$\\frac{\\text{Expected number of positive outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Gain for positive outcomes} + \\frac{\\text{Expected number of negative outcomes}}{\\text{Total number of possible outcomes}}\\cdot \\text{Losses for negative outcomes} $$
+Let's consider a scenario where you play  1$ only on one number. In this case, the expected gain can be calculated as follows: $$\\frac{1}{38}\\cdot 35 + \\frac{37}{38}\\cdot (-1)  =\\frac{-2}{38} = -0.0526 = 5.26\\% $$ This means that on average, for every round played, you can expect to lose 5.26% of your balance."))
+  })
+
+
+
+
+  # I. Reactive Data Frames -------------------------------------------------
+  # Store user names and colors
+  shared_vals <- reactiveValues(chip_color = NULL,
+                                all_colors = tolower(colors()[grepl("^[^0-9]*$", colors())]),
+                                taken_colors = NULL)
+
+
+  # [0,] to give only the titles of the columns to the data.frame
+  selectedPoints <- reactiveValues(data = cbind(clickable[0, ],
+                                                betAmount = double()))
+
+  roulette <- reactiveValues(winningSlot = NULL, history = NULL)
+
+  resultsTable <- reactiveValues(data = cbind(clickable[0, ],
+                                              betAmount = double()))
+
+  completeList <- reactiveValues(data = cbind(slots = numeric(),
+                                              #clickable[0, 9:ncol(clickable)],
+                                              betAmount = double(),
+                                              outcome = double(),
+                                              winningSlot = double()))
+
+  outcomesList <- reactiveValues(data = cbind(balance = 0,
+                                              betNum = 0))
+
+  # we define updatedbalance as a reactive value. This is because this value
+  # will change depending on if have won or lost the bet...
+  updatedbalance <- reactiveValues(balance = 0)
+
+
+
+  session_vals <- reactiveValues(user_name = "", user_color = NULL, all_user_names = "", user_score = 0)
+
+  #Initiate roulette_display$gif to an empty string
+  roulette_display <- reactiveValues(gif = "")
+
+  #Fill it with the name of the image of the empty roulette
+  roulette_display$gif = "photo_roulette.png"
+
+  # the dataframe that we are going to use for the plots.
+  # df_amount = reactive({
+  #   martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette)
+  # })
+
+  #browser()
+
+  init_user_color <- FALSE
+
+  session$onSessionEnded(function() {
+    isolate({
+      # User color operations
+      shared_vals$all_colors <- c(shared_vals$all_colors, session_vals$user_color)
+      shared_vals$taken_colors <- shared_vals$taken_colors[shared_vals$taken_colors != session_vals$user_color]
+
+    })
+  })
+
+  # Observer to handle changes to the chip color
+  observe({
+    input$chipColor
+
+    # G. For uninitialized session - set random color
+    if (!init_user_color){
+      # 1. Set a random color at first
+      session_vals$user_color <- sample(shared_vals$all_colors, 1)
+      # 2. Initialize the session
+      init_user_color <<- TRUE
+
+    } else {
+      isolate({
+        # H. Check that the color input is valid and allowed
+        #print(input$chipColor)
+        if (input$chipColor == session_vals$user_color || input$chipColor == "" || !(input$chipColor %in% shared_vals$all_colors)){
+          print("Please choose a unique and allowed color")
+          return()
+        }
+        # I. Put the old color to free colors and take it out of the taken colors
+        shared_vals$all_colors <- c(shared_vals$all_colors, session_vals$user_color)
+        shared_vals$taken_colors <- shared_vals$taken_colors[shared_vals$taken_colors != session_vals$user_color]
+
+        # J. Update user color with the new choice
+        session_vals$user_color <- input$chipColor
+      })
+    }
+    # K. Add the new color to the global list for taken colors and out of avialable colors
+    isolate(shared_vals$taken_colors <- c(shared_vals$taken_colors, session_vals$user_color))
+    isolate(shared_vals$all_colors <- shared_vals$all_colors[shared_vals$all_colors != session_vals$user_color])
+
+  })
+
+  # Keep the list of connected users updated
+  output$userList <- renderUI({
+    tagList(tags$ul(lapply(shared_vals$users, function(user){
+      return(tags$li(user))
+    })))
+  })
+
+
+
+  # II. Bet Amount Selection -------------------------------------------------
+  bet <- reactiveValues(amount = 10)
+
+  # Choose the bet amount
+  observeEvent(input$bet1, {
+    print("Bet changed to $10")
+    bet$amount <- 10
+  })
+
+  observeEvent(input$bet2, {
+    print("Bet changed to $25")
+    bet$amount <- 25
+  })
+
+  observeEvent(input$bet3, {
+    print("Bet changed to $50")
+    bet$amount <- 50
+  })
+
+  observeEvent(input$bet4, {
+    print("Bet changed to $100")
+    bet$amount <- 100
+  })
+
+  observeEvent(input$bet5, {
+    print("Bet changed to $250")
+    bet$amount <- 250
+  })
+
+
+
+
+  # III. Table Plot ---------------------------------------------------------------
+  # Roulette table
+  output$rTable <- renderPlot({
+    #Render the table
+    rouletteTable <- renderTable()
+
+    #Render the chips
+    if (!is.null(selectedPoints$data) && nrow(selectedPoints$data) > 0) {
+      rouletteTable <- renderChips(rouletteTable, selectedPoints$data)
+    }
+
+    rouletteTable
+  })
+
+
+
+  # IV. Event Observers -----------------------------------------------------
+
+
+
+  # this is an observer for when we click on the button "add"
+  # this will update the balance with what we input numerically in the shiny app.
+  # e.g. we input 1000, our balance is 1000.
+  # then whenever we bet and loss (or hopefully) win, it will subtract (or add)
+  # money to that amount.
+  observeEvent(input$add ,{
+    startingbalance <- input$startbalance
+    updatedbalance$balance = updatedbalance$balance + startingbalance
+    #paste("your balance is now ", updatedbalance$balance)
+  })
+
+
+
+  # click function
+  selected_number <- reactiveValues(data = NULL)
+
+
+  observeEvent(input$plot_click,{
+    currentBet <- isolate(bet$amount)
+
+    #this also works
+    click <- nearPoints(clickable, input$plot_click, threshold = 20, maxpoints = 1)
+
+
+    if(nrow(click) != 0 ){
+    newBet <- cbind(click, betAmount = currentBet,user_color = session_vals$user_color)
+
+    ## When we use selectedPoints, this is some sort of dataframe we defined
+    ##at the beginning of the program. It contains all the info of clickable
+    ## and the bet amount.
+    ## If we want to see it outside a reactive environment we do :
+    #isolate(selectedPoints$data)
+    #isolate(newBet$data)
+
+    # add new bet
+    selectedPoints$data <- rbind(selectedPoints$data, newBet)
+
+    paste("the number you clicked on is ", click$b1)
+
+    selectedPoints$data <- as.data.frame(selectedPoints$data)
+
+    # combine same bets. Easier to calculate the payouts.
+    selectedPoints$data <- selectedPoints$data %>%
+      group_by_at(setdiff(names(selectedPoints$data), c("betAmount", "x", "y", "user_color"))) %>%
+      summarize(betAmount = sum(betAmount), x = tail(x, 1), y = tail(y, 1), user_color = last(user_color)) %>%
+      as.data.table()
+
+    }
+
+
+  })
+
+
+  ## D. Spin the wheel------
+  observeEvent(input$spin, {
+    #Play the sound of the ball rolling
+    runjs("document.getElementById('sound').play();")
+
+    # save the bets for results tables
+    resultsTable$data <- selectedPoints$data
+
+    # clear the betting table
+    selectedPoints$data <-cbind(clickable[0,], betAmount = double())
+
+    # spin the roulette
+    # roulette retourne une liste avec le numéro gagnant ainsi que ses charactéristiques
+    # sous forme de 1 et 0.
+    # We save this list within roulette$winningSlot
+    # So to access one of the characteristic, just do roulette$winningSlot$characteristic
+    roulette$winningSlot <- roulette(verbose = TRUE)
+
+
+
+    # Save spin results for the history
+    if (!is.null(roulette$winningSlot)) {
+      roulette$history <-c(roulette$winningSlot$slotLanded, roulette$history)
+      if (length(roulette$history) > 10) {
+        roulette$history <- roulette$history[1:10]
+      }
+    }
+
+
+    if (nrow(resultsTable$data) > 0) {
+      tableOverall <-data.frame(slots = apply(resultsTable$data, 1, combineSlots),
+                                betAmount = resultsTable$data$betAmount,
+                                outcome = apply(resultsTable$data, 1, checkWin))
+
+      #print("results table")
+      #print(resultsTable$data) it prints what is betted on
+      #print("table_overall")
+      #print(tableOverall)
+
+
+      # Grab the bets and sum the bet outcomes
+      bet_results <- if (nrow(tableOverall) > 0) {
+        data.frame(outcome = apply(tableOverall, 1, computeTotal))
+        }
+      else{
+        #In case no bet is made:
+        data.frame(outcome = NULL,stringsAsFactors = FALSE)
+        }
+
+      #this is the same thing as total above.
+      #   manualTotals <- ifelse(nrow(tableOverall[tableOverall$manualBet == TRUE, ]) > 0,
+      #                          data.frame(outcome = apply(tableOverall[tableOverall$manualBet == TRUE, ], 1, computeTotal),
+      #                                     stringsAsFactors = FALSE),
+      #                          data.frame(outcome = NULL,
+      #                                     stringsAsFactors = FALSE))
+      #
+      # }
+
+    }
+    else{
+      #In case no bet is made:
+      bet_results <- data.frame(outcome = NULL,stringsAsFactors = FALSE)
+    }
+
+    # we print the sum of our bets.
+    net_gain_loss <- sum(bet_results)
+    print(net_gain_loss)
+
+
+    # we add those gains to our balance
+    # we have to use updatedbalance$balance in order for currentBalance to be numeric
+    currentBalance <- updatedbalance$balance
+    # the reactive value updatedbalance is then calculated this way
+    updatedbalance$balance = currentBalance + as.numeric(net_gain_loss)
+
+
+    #When starting the roulette, we update roulette_display$gif which was an image of the empty
+    #roulette to the correct gif
+    roulette_display$gif = switch(roulette$winningSlot$slotLanded,
+                              "0" = "numero_0.gif",
+                              "00" = "numero_00.gif",
+                              "1" = "numero_1.gif",
+                              "2" = "numero_2.gif",
+                              "3" = "numero_3.gif",
+                              "4" = "numero_4.gif",
+                              "5" = "numero_5.gif",
+                              "6" = "numero_6.gif",
+                              "7" = "numero_7.gif",
+                              "8" = "numero_8.gif",
+                              "9" = "numero_9.gif",
+                              "10" = "numero_10.gif",
+                              "11" = "numero_11.gif",
+                              "12" = "numero_12.gif",
+                              "13" = "numero_13.gif",
+                              "14" = "numero_14.gif",
+                              "15" = "numero_15.gif",
+                              "16" = "numero_16.gif",
+                              "17" = "numero_17.gif",
+                              "18" = "numero_18.gif",
+                              "19" = "numero_19.gif",
+                              "20" = "numero_20.gif",
+                              "21" = "numero_21.gif",
+                              "22" = "numero_22.gif",
+                              "23" = "numero_23.gif",
+                              "24" = "numero_24.gif",
+                              "25" = "numero_25.gif",
+                              "26" = "numero_26.gif",
+                              "27" = "numero_27.gif",
+                              "28" = "numero_28.gif",
+                              "29" = "numero_29.gif",
+                              "30" = "numero_30.gif",
+                              "31" = "numero_31.gif",
+                              "32" = "numero_32.gif",
+                              "33" = "numero_33.gif",
+                              "34" = "numero_34.gif",
+                              "35" = "numero_35.gif",
+                              "36" = "numero_36.gif"
+
+                              )
+
+
+  })
+
+  # Reset the bet
+  observeEvent(input$reset, {
+    selectedPoints$data <- cbind(clickable[0, ], betAmount = double())
+  })
+
+  # V. Helper Functions -----
+
+  checkWin <- function(row) {
+    # Cette fonction retourne un string nous disant si on a gagné ou pas et combien
+
+    # check for inside bets first row[10] -> row$type
+    # 1 2 3  4  5  6  7  8  9      10    11        12
+    # x y b1 b2 b3 b4 b5 b6 payOut type betAmount manualBet
+
+    # On check si on est dans inside ou outside bets. Donc le type de bet
+    if (row["type"] %in% c("Single", "Split", "Square Bet", "Line Bet", "Street Bet", "Trio Bet", "Top Line Bet")) {
+      #On calcule le payout
+      payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
+      # WinnerFlag is TRUE if one of the b1 to b6 is equal to the winning number.
+      # na.rm is used to get rid of the NAs
+      # e.g. When we bet on a single number. Only b1 is filled, b2 to b6 are not
+      winnerFlag <- any(c(row[paste0("b", 1:6)]) == roulette$winningSlot$slotLanded, na.rm = TRUE)
+      # this outputs us the amount we won or lost
+      if (winnerFlag) {
+        return(paste("won: $", payout, sep = ""))
+      }
+      else {
+        return(paste("lost: $", row["betAmount"], sep = ""))
+      }
+
+      # checks if we're in outside bets
+    }
+    else if (row["type"] %in% c("Column Bet", "Dozen Bet", "High", "Low", "Even", "Odd", "Red", "Black")) {
+      # we calculate the payouts
+      payout <- as.numeric(row["betAmount"]) * as.numeric(row["payOut"])
+      if (row["type"] == "Column Bet") {
+        if (substr(row["b1"], 1, 1) == roulette$winningSlot$column) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Dozen Bet") {
+        # print("check")
+        # print(roulette$winningSlot$dozen)
+        if (substr(row["b1"], 1, 1) == roulette$winningSlot$dozen) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "High") {
+        if (roulette$winningSlot$high) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Low") {
+        if (roulette$winningSlot$low) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Even") { # si la personne a bet sur Even
+        if (roulette$winningSlot$even) { # Et si le résultat gagnant est even,
+          # alors roulette$winningSlot$even est TRUE (ou 1), alors c'est gagné.
+          return(paste("won: $", payout, sep = ""))
+        }
+        else { # sinon c'est perdu
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Odd") {
+        if (roulette$winningSlot$odd) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Red") {
+        if (roulette$winningSlot$color == 1) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else if (row["type"] == "Black") {
+        if (roulette$winningSlot$color == 2) {
+          return(paste("won: $", payout, sep = ""))
+        }
+        else {
+          return(paste("lost: $", row["betAmount"], sep = ""))
+        }
+      }
+      else {
+        return("Unknown outside bet")
+      }
+    }
+    else {
+      return("Unclassified bet")
+    }
+  }
+
+  computeTotal <- function(row) {
+    # Cette fonction extrait les montants gagnés ou perdus.
+
+    # Cette fonction est utilisée avec le data frame tableOverall.
+    # Dans outcome : il y a soit "lost $ Bet$amount", soit "won $ payOut"
+    # ce if, check si la première lettre est un "l", (ou un "w").
+    if (substr(row["outcome"], 1, 1) == "l") {
+      return(-1 * as.numeric(row["betAmount"])) # Si perdu, on perd le betAmount
+    } else {
+      return(as.numeric(str_extract(row["outcome"], "(?<=won: \\$)\\d*")))
+      # Si gagné, on extrait ce qui est gagné du string et on le transforme en nombre.
+    }
+  }
+
+
+
+
+
+  combineSlots <- function(row) {
+    # Take the betting columns out
+    row <- row[paste0("b", 1:6)]
+
+    # concatenates all the numbers of the slots we betted on as a string.
+    # e.g. if we split bet on 16 and 17 it gives "16, 17"
+    # Remark : If we bet on Red, it outputs "Red", same for Dozen Bet it gives
+    # "2nd Dozen".
+    betList <- str_trim(str_replace_all(paste0(ifelse(is.na(row), "", row), collapse = ", "), "[\\, ]{3,}", ""))
+
+    return(betList)
+  }
+
+
+
+
+
+  # VI. Outputs for UI ------------------------------------------------------
+
+  # output$general_balance <- renderText({
+  #     paste("The general balance is :", general_balance)
+  # })
+
+  # For the winning number
+  output$rouletteWinningNumber <- renderText({
+    if (!is.null(roulette$winningSlot)) {
+      paste("The winning number is:", paste(roulette$winningSlot$slotLanded, collapse = ""))
+    }
+    else {
+      return(invisible(NULL))
+    }
+  })
+
+
+
+  #For the roulette history of the last 10 numbers
+  output$rouletteHistoryText <- renderText({
+    if (!is.null(roulette$winningSlot)) {
+      paste("The history of winning slots is:")
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
+
+
+
+  output$rouletteHistory_red <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (roulette$history[i] %in% c(1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36)) {
+          list_red <- c(list_red, roulette$history[i])
+        }
+      }
+
+
+
+      paste(paste(list_red, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
+
+
+  output$rouletteHistory_black <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (roulette$history[i] %in% c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35)) {
+          list_black <- c(list_black, roulette$history[i])
+        }
+      }
+
+      paste(paste(list_black, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
+  output$rouletteHistory_green <- renderText({
+    if (!is.null(roulette$winningSlot)){
+      for (i in 1:length(roulette$history)) {
+        if (!(roulette$history[i] %in% c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35,1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36))) {
+          list_green <- c(list_red, roulette$history[i])
+        }
+      }
+
+      paste(paste(list_green, collapse = "-"))
+    } else {
+      return(invisible(NULL))
+    }
+  })
+
+
+  # this is in order for the UI to display or updated balance.
+  output$generalbalance <- renderText({
+    # if(!is.null(roulette$winningSlot)){
+      paste("My balance is now " , updatedbalance$balance)
+    # }
+    # else if(add_button == TRUE){
+    #   paste("My balance is now", updatedbalance$balance)
+    # }
+    # else{
+    #   return(invisible(NULL))
+    # }
+
+  })
+
+  ## Strategy graphs----
+  observeEvent(input$run_simulation, {
+
+    # define the variable "number_simulation" for the graph
+    number_simulation = input$num_sims
+
+    ###Strategy selection----
+    switch(input$selectedStratgy,
+                     "Martingale" = {df_balance <- martingale_strategy(input$num_sims,
+                                                                    input$start_bet,
+                                                                    input$bet_amount,
+                                                                    roulette,
+                                                                    input$tot_spin)
+                     text_strategy = "The Martingale strategy is a popular betting system commonly applied to games like roulette. When implemented in American roulette, which features a wheel with both a single and double zero, the strategy follows a specific pattern.
+                     It is based on the principle of doubling your bet after every loss. In the context of American roulette, players typically choose even-money bets, such as red or black, odd or even, or high or low numbers. Let's consider the example of betting on even.
+                     Initially, you place a bet on even. If you win, you collect your winnings and start the strategy again with the same initial bet. However, if you lose, you double your bet on the next spin. If you lose again, you continue doubling your bet until you eventually win.
+                     The idea behind the Martingale strategy is that when you do win, the payout should cover all previous losses, and you will be left with a small profit equal to your initial bet.
+                     However, it's important to note that the strategy assumes an unlimited bankroll, no table limits, and infinite time.
+                     While the Martingale strategy can be enticing, it carries inherent risks. If a losing streak prolongs, the bets can escalate rapidly, leading to substantial losses. Additionally, table limits and a finite bankroll may restrict the strategy's effectiveness.
+                     It is crucial to understand the limitations and risks associated with this strategy before employing it in real-world casino settings.
+                     "},
+
+                     "Fibonacci system" = {df_balance <- fibonacci_strategy(input$num_sims,
+                                                                  input$start_bet,
+                                                                  input$bet_amount,
+                                                                  roulette,
+                                                                  input$tot_spin)
+                     text_strategy = "The Fibonacci betting system is another popular strategy used in various gambling games, including roulette. This strategy derives its name from the Fibonacci sequence, a mathematical sequence where each number is the sum of the two preceding numbers (e.g., 1, 1, 2, 3, 5, 8, 13, and so on).
+                     When applied to betting, the Fibonacci strategy follows a specific pattern.
+                     The Fibonacci betting system is often employed in games with even-money bets, such as red or black, odd or even, or high or low numbers in roulette. Let's consider the example of betting on even  using the Fibonacci strategy.
+                     To begin, you start with the first two numbers of the Fibonacci sequence, which are 1 and 1. You place your initial bet on black. If you win, you collect your winnings and start the strategy again with the same initial bet.
+                     However, if you lose, you progress along the Fibonacci sequence and bet the next number in line. In this case, your next bet would be 2 (1 + 1). If you lose again, you move further along the sequence and bet the next number, which is 3 (1 + 2). You continue this pattern, always betting the sum of the two preceding numbers in the Fibonacci sequence.
+                     The idea behind the Fibonacci strategy is that when you eventually win, your winnings should be sufficient to cover all previous losses, leaving you with a profit equal to your initial bet. The progression in bet amounts is meant to help recoup losses gradually.
+                     However, it's essential to understand that like the Martingale strategy, the Fibonacci betting system has its limitations and risks. A prolonged losing streak can lead to escalating bets, which can result in significant losses. Additionally, table limits and a finite bankroll may restrict the effectiveness of this strategy.
+                     While the Fibonacci strategy can be enticing due to its mathematical basis, it is crucial to approach it with caution and consider the inherent risks involved. Understanding the limitations and potential downsides of this strategy is vital before applying it in real-world casino settings.
+                     "},
+
+                     "Reverse Martingale" = {df_balance <- reverse_martingale_strategy(input$num_sims,
+                                                                       input$start_bet,
+                                                                       input$bet_amount,
+                                                                       roulette,
+                                                                       input$tot_spin)
+                     text_strategy = "The Reverse Martingale strategy, also known as the Paroli system, is a popular betting approach used in various gambling games, including roulette. This strategy operates in contrast to the traditional Martingale system. While the Martingale doubles the bet after a loss, the Reverse Martingale doubles the bet after a win.
+                     Similarly to the previous strategies, players typically choose even-money bets in games.
+                     To begin, you place an initial bet on red. If you win, you double your bet on the next spin. If you win again, you continue doubling your bet for subsequent wins. The idea behind the Reverse Martingale strategy is to capitalize on winning streaks and maximize profits during favorable runs.
+                     Unlike the Martingale strategy, where losses can escalate rapidly, the Reverse Martingale aims to exploit winning streaks while limiting losses during unfavorable runs. By doubling the bet after each win, the strategy allows players to potentially accumulate larger winnings while keeping their original investment intact.
+                     However, it's important to note that the Reverse Martingale strategy also carries inherent risks. Winning streaks are never guaranteed, and a sudden loss can wipe out previous profits. And in this example, since the roulette is 'flawed' because of the 0 and 00, the probability of winning is always less than 50%. Because of that, when the numbers of rounds goes to infinity, our expected balance is 0.
+                     It is crucial to exercise caution and establish predetermined win targets or loss limits to protect against potential downturns.
+                     Moreover, table limits and a finite bankroll can limit the effectiveness of the Reverse Martingale strategy. It is important to consider these factors and evaluate the suitability of this approach within the specific context of a real-world casino setting.
+                     While the Reverse Martingale strategy can be an appealing betting system, it is crucial to understand its limitations and potential risks. Careful consideration and proper bankroll management are essential to make informed decisions and ensure a responsible gambling experience.
+                     "},
+
+                     "Reverse Martingale stop" = {df_balance <- reverse_martingale_strategy_stop(input$num_sims,
+                                                                                       input$start_bet,
+                                                                                       input$bet_amount,
+                                                                                       roulette,
+                                                                                       input$tot_spin)
+                     text_strategy = "The Reverse Martingale Stop is a modified version of the Reverse Martingale, also known as the Paroli system. This strategy introduces a deliberate stopping point to take advantage of the potential snowballing effect observed in the traditional Reverse Martingale strategy. Here's an explanation of the motivation behind this approach:
+                     The Reverse Martingale strategy is based on doubling the bet after each win, with the aim of capitalizing on winning streaks and maximizing profits during favorable runs. However, it is important to acknowledge that in the context of casino games, the presence of the 0 and 00 pockets in roulette ensures that, over an extended period, players will inevitably lose and end up with a balance of 0.
+                     Recognizing this inherent limitation, the Reverse Martingale Stop strategy introduces a predetermined stopping point to avoid the eventual loss of the entire balance. By setting a predefined goal or threshold, players can proactively choose to stop playing once they reach a certain profit level or when they've achieved a predetermined number of consecutive wins.
+                     The motivation behind the Reverse Martingale Stop strategy is to strike a balance between capitalizing on winning streaks and safeguarding against potential losses. By incorporating a stop condition, players aim to secure a reasonable profit without risking their entire bankroll in pursuit of an unrealistic goal.
+                     Implementing a stop condition in the Reverse Martingale strategy allows players to exercise control and discipline in their betting approach. It encourages a more measured and responsible gambling experience by setting clear objectives and adhering to predetermined limits.
+                     It is important to note that while the Reverse Martingale Stop strategy introduces an element of risk management, it does not guarantee long-term profitability. Casino games, including roulette, are designed with an inherent house edge that ensures, over time, players will lose money. Therefore, it is crucial to approach any betting strategy, including the Reverse Martingale Stop, with a realistic understanding of the probabilities and potential outcomes.
+                     Before applying the Reverse Martingale Stop strategy or any betting system, it is advisable to assess personal risk tolerance, establish clear objectives, and set reasonable stop conditions to ensure responsible gambling behavior.
+
+                     !!!! need to add more details concerning the interaction between the purple line and red line
+                     "},
+
+
+                     "D'Alembert System" = {df_balance <- dalembert_strategy(input$num_sims,
+                                                                             input$start_bet,
+                                                                             input$bet_amount,
+                                                                             roulette,
+                                                                             input$tot_spin)
+                     text_strategy = "The D'Alembert system is a popular betting strategy utilized in various gambling games, including roulette. This strategy follows a different approach compared to the Martingale or Reverse Martingale systems.
+                     The D'Alembert system is a betting strategy that focuses on incrementally adjusting bet sizes based on wins and losses. Named after the French mathematician Jean le Rond d'Alembert, this strategy aims to achieve a more balanced progression while minimizing potential losses.
+                     In the D'Alembert system, players typically choose even-money bets.
+                     The key principle of this strategy is to increase the bet size by a predetermined unit after a loss and decrease it by the same unit after a win.
+                     In our implementation, this predetermined unit is the starting bet amount.
+                     The motivation behind the D'Alembert system is to create a slower and more conservative progression, which reduces the risk of substantial losses during extended losing streaks. By increasing the bet size after a loss, players aim to recoup their previous losses gradually. Conversely, reducing the bet size after a win helps protect profits and mitigate potential downturns.
+                     Unlike the Martingale system, which involves doubling bets after each loss, the D'Alembert system offers a more gradual and controlled approach. This can provide a sense of stability and a longer-lasting bankroll during a session of play.
+                     However, it is essential to recognize that the D'Alembert system does not guarantee long-term profitability. Similar to other betting strategies, the D'Alembert system cannot overcome the inherent house edge in casino games. It is crucial to approach the strategy with a realistic understanding of the probabilities and potential outcomes.
+                     Moreover, it's important to exercise caution when implementing the D'Alembert system, as an extended losing streak can still result in significant losses. While the gradual adjustment of bet sizes aims to minimize risks, the introduction of a predetermined loss limit, as seen before can also be important.
+                     Before utilizing the D'Alembert system or any betting strategy, it is advisable to assess personal risk tolerance, set reasonable objectives, and be aware of the limitations associated with the strategy. Understanding the dynamics of the game, practicing responsible gambling, and having realistic expectations are essential factors in optimizing the overall gambling experience.
+                     "}
+           )
+
+
+
+    ##Top plot ----
+    # now we plot the plot for the winrate
+    df_win_rate <- win_rate(df_balance)
+    # we calculate the overall winrate
+    mean_win_rate <- mean(df_win_rate$win_rate)
+    output$win_rate_plot <- renderPlot({
+      ggplot(data = df_win_rate, aes(x = 1:length(win_rate), y = win_rate, fill = win_rate > 0.5))+
+        geom_col()+
+        scale_fill_manual(values = c("red", "blue"), guide = guide_legend(title = "Winrate above 50%"))+
+        labs(x = "ID of the simulation", y = "Winrate")+
+        geom_segment(aes(x = 0, y = 0.5, xend = number_simulation, yend = 0.5, color = "50% win rate", linetype = "Line 1 black"), show.legend = TRUE) +
+        geom_segment(aes(x = 0, y = mean_win_rate, xend = number_simulation, yend = mean_win_rate, color = "Average win rate of the simulations", linetype = "Line 2 green"), show.legend = TRUE) +
+        scale_x_continuous(breaks= 1:number_simulation)+
+        scale_color_manual(values = c("black", "green"), guide = guide_legend(title = "Lines"))+
+        scale_linetype_manual(values = c("dotted", "dashed"))+
+        guides(linetype = "none")+
+        theme_minimal()
+    })
+
+
+    #Text for the winrate graph, under the top plot
+    output$text_win_rate <- renderText({
+      "In the plot above, we can observe the win rate of each simulation over multiple spins of the roulette.
+      It is evident that the average win rate of the simulations consistently remains below 50%.
+      Despite acknowledging the randomness of the roulette and the possibility of variations, this consistent difference can be attributed to the mechanics of the roulette itself.
+      The payouts in the roulette generally align with the odds of their occurrence, except for the inclusion of the numbers 0 and 00.
+      These numbers do not belong to any specific category like black or red, even or odd, etc.
+      Although they occur infrequently, their presence is sufficient to bring down the average win rate below 50%, ensuring that the house always maintains an advantage in the long run.
+      "})
+
+    ##Bottom plot----
+    output$balance_plot <- renderPlot({
+
+
+      # Add a sequence column to represent the rows
+      df_balance$row <- seq_len(nrow(df_balance))
+
+      # Create an empty ggplot object
+      p = ggplot()+
+        labs(x = "Spins", y = "Balance")+
+        geom_hline(yintercept = 0, linetype = "dotted", color = "black")+
+        theme_minimal ()
+
+      sum_of_amount = rep(NA,number_simulation)
+      for(i in 1:number_simulation){
+        # Filter the dataframe for the current line
+        df_line <- filter(df_balance, row == i)
+        df_line_pivot = pivot_longer(df_line,cols =-row, names_to = "Column", values_to = "Balance")
+
+        # Add the line to the plot
+        p <- p + geom_line(data = df_line_pivot, aes(x = 1:nrow(df_line_pivot), y = Balance), color = i,show.legend = TRUE)
+
+        #Store the final balance at each iteration
+        sum_of_amount[i] = tail(na.omit(df_line_pivot[,3]), 1)
+      }
+
+      # In order to see if the strategy can generate returns. We calculate the sum of
+      # all the final balances at the end.
+      sum_of_amount_unlisted = unlist(sum_of_amount)
+      tot_amount = sum(sum_of_amount_unlisted)
+
+      #p <- p +
+
+
+      #Attempt to plot the sum of balance of all simulations for each spin
+      # Calculate the sum of each column (spin) and create a new row
+      sum_row <- df_balance %>% summarize(across(everything(), ~sum(replace(., is.na(.), 0))))
+
+      # Reshape sum_row to match the structure of df_balance
+      sum_row_pivot <- pivot_longer(sum_row, cols = -row, names_to = "Column", values_to = "Balance")
+
+
+      # Add the sum row as a line to the plot
+      #p <- p + geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple")
+
+
+      #browser()
+      avg_sum_row <- mean(unlist(sum_row))
+
+      #Correct lines:
+      # p <- p + geom_hline(yintercept = tot_amount, linetype = "dotted", color = "red") +
+      #   geom_line(data = sum_row_pivot, aes(x = 1:nrow(sum_row_pivot), y = Balance), color = "purple") +
+      #   geom_hline(yintercept = avg_sum_row, linetype = "dotted", color = "purple")
+
+      #Test legend:
+      p <- p +
+        geom_hline(
+          aes(yintercept = tot_amount, linetype = "red_dotted", color = "red_dotted")
+        ) +
+        geom_line(
+          data = sum_row_pivot,
+          aes(x = 1:nrow(sum_row_pivot), y = Balance, linetype = "purple_filled", color = "purple_filled")
+        ) +
+        geom_hline(
+          aes(yintercept = avg_sum_row, linetype = "purple_dotted", color = "purple_dotted")
+        ) +
+        scale_linetype_manual(
+          values = c("red_dotted" = "dotted", "purple_filled" = "solid", "purple_dotted" = "dotted"),
+          labels = c("Cumulative balance of all simulations at the end",
+                     "Cumulative balance of all simulations for each spin",
+                     "Mean cumulative balance of all simulations"),
+          guide = FALSE
+        ) +
+        scale_color_manual(
+          values = c("red_dotted" = "red", "purple_filled" = "purple", "purple_dotted" = "purple"),
+          labels = c("Cumulative balance of all simulations at the end",
+                     "Cumulative balance of all simulations for each spin",
+                     "Mean cumulative balance of all simulations"),
+          guide = FALSE
+        ) +
+        guides(
+          linetype = guide_legend(
+            title = "Lines",
+            override.aes = list(
+              linetype = c("red_dotted" = "dotted", "purple_filled" = "solid", "purple_dotted" = "dotted"),
+              color = c("red_dotted" = "red", "purple_filled" = "purple", "purple_dotted" = "purple")
+            )
+          )
+        )
+
+      # Add a legend and customize its position
+      p <- p + theme(legend.position = "bottom",
+                     legend.direction='vertical',
+                     legend.box = "horizontal")
+
+      print(p)
+    })
+
+
+    #Text for the balance graph, under the bottom plot
+    output$text_balance1 <- renderText({
+      "In the plot above, we can observe the balance of each simulation for a given strategy.
+      A simulation ends if on one spin, its balance is at or under 0.
+      The red dotted line is the sum of level of all the balances at the end of the spins.
+      If many simulation ended with a negative balance. This red line can be negative.
+      One interpretation for this red line could be a player applying a strategy over and over.
+      In general, the objective for a player is to end up with a balance higher than what they started with.
+      We can see that some of the simulation can often be higher than their starting amount, but that in the long
+      run, the red line is almost always either negative or under Number of simulations*Starting balance .
+      "})
+
+    output$text_balance2 <- renderText({
+      "The solid purple line holds a distinct significance.
+      It calculates the sum of all balances for each spin.
+      This implies that if the line surpasses its initial point and players (simulations) choose to stop at that point, they can potentially earn profits.
+      However, through playing a bit, one can observe that this occurrence is extremely rare, once again highlighting the significant advantage of the house.
+      The only strategy that can achieve this outcome somewhat consistently is the reverse martingale stop.
+      You are welcome to try it out a few times using the following settings: (50, 1000, 10, 5000).
+      You may notice a significant spike in the purple line, surpassing the initial cumulative balance.
+      "})
+
+    #Text for each strategy, under the bottom plot
+    output$textstrategy <- renderText({text_strategy})
+
+
+
+  })
+
+
+  ## Render for the gif of the roulette
+  output$gifDisplay <- renderUI({
+    gifFilename = roulette_display$gif
+    if (!is.null(gifFilename)) {
+      tags$img(src = gifFilename, width = "100%", height = "auto")
+    }
+  })
+
+
+
+
+  #Attempt to improve the runtime of the different strats
+  # observeEvent(input$run_simulation, {
+  #   result <- microbenchmark(
+  #     {martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)},
+  #     {martingale_strategy2(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)},
+  #     times = 50  # Number of times to repeat the measurement
+  #   )
+  #
+  #   # Access the results of microbenchmark
+  #   print(result)
+  #
+  # })
+
+}
+
+# IX. Run the app-----------------------------------------
+
+
+# Run the application
+shinyApp(ui = ui, server = server)
+

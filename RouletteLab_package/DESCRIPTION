@@ -1,0 +1,27 @@
+Package: RouletteLab
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Authors@R: c(
+    person("Ricardo", "Barbosa", email = "barbosa.ricardo10@gmail.com", role =c("aut","cre")),
+    person("Pablo", "Huber", role = "aut"),
+    person("Luca", "Bortolotti", role = "aut"),
+    person("Oscar", "Wieland", role = "aut"))
+Imports: 
+        ggplot2,
+        shinyjs,
+        shiny,
+        DT,
+        stringr,
+        dplyr,
+        data.table,
+        tidyverse,
+        DescTools,
+        microbenchmark,
+        devtools,
+        shinycssloaders
+Description:This is an R Shiny app of an american roulette and some statistics. This was done as a project for the course "Introduction to Data Science" at the University of Geneva in 2023.
+License: `use_mit_license()`
+Encoding: UTF-8
+LazyData: true
+Maintainer: Ricardo Barbosa <barbosa.ricardo10@gmail.com>
