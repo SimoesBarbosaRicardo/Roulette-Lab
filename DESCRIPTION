@@ -3,9 +3,9 @@ Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
 Authors@R: c(
-    person("Ricardo", "Barbosa", email = "barbosa.ricardo10@gmail.com", role = c("aut","cre")),
+    person("Ricardo", "Lee", email = "justinlee@psu.edu", role = c("aut","cre")),
     person("Stephane", "Guerrier", role = "aut"),
-    person("Roberto", "Molinari", role = "aut"),
+    person("Oscar", "Wieland", role = "aut"),
     person("Matthew", "Beckman", role = "aut")
     )
     
