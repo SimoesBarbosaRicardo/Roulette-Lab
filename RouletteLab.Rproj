@@ -17,4 +17,5 @@ StripTrailingWhitespace: Yes
 
 BuildType: Package
 PackageUseDevtools: Yes
+PackagePath: C:/Users/luca7/Documents/Unige/GSEM/Semestre 6/Intro to Data Science/Project/Final_Project_DS
 PackageInstallArgs: --no-multiarch --with-keep.source
