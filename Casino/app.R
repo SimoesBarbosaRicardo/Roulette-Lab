@@ -952,6 +952,10 @@ ui <- fluidPage(
                                     h3("Evolution of the Balance over the number of spins"),
                                     withSpinner(plotOutput("balance_plot", height = "400px"), type = 6, color = "#F8AF36"),
                                     br(),
+                                    textOutput("text_balance1"),
+                                    br(),
+                                    textOutput("text_balance2"),
+                                    br(),
                                     h3("Strategy description"),
                                     textOutput("textstrategy"),
                                     br(),
@@ -1769,6 +1773,29 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
       print(p)
     })
 
+
+    #Text for the balance graph, under the bottom plot
+    output$text_balance1 <- renderText({
+      "In the plot above, we can observe the balance of each simulation for a given strategy.
+      A simulation ends if on one spin, its balance is at or under 0.
+      The red dotted line is the sum of level of all the balances at the end of the spins.
+      If many simulation ended with a negative balance. This red line can be negative.
+      One interpretation for this red line could be a player applying a strategy over and over.
+      In general, the objective for a player is to end up with a balance higher than what they started with.
+      We can see that some of the simulation can often be higher than their starting amount, but that in the long
+      run, the red line is almost always either negative or under Number of simulations*Starting balance .
+      "})
+
+    output$text_balance2 <- renderText({
+      "The solid purple line holds a distinct significance.
+      It calculates the sum of all balances for each spin.
+      This implies that if the line surpasses its initial point and players (simulations) choose to stop at that point, they can potentially earn profits.
+      However, through playing a bit, one can observe that this occurrence is extremely rare, once again highlighting the significant advantage of the house.
+      The only strategy that can achieve this outcome somewhat consistently is the reverse martingale stop.
+      You are welcome to try it out a few times using the following settings: (50, 1000, 10, 5000).
+      You may notice a significant spike in the purple line, surpassing the initial cumulative balance.
+      "})
+
     #Text for each strategy, under the bottom plot
     output$textstrategy <- renderText({text_strategy})
 
@@ -1788,6 +1815,7 @@ Let's consider a scenario where you play  1$ only on one number. In this case, t
 
 
 
+  #Attempt to improve the runtime of the different strats
   # observeEvent(input$run_simulation, {
   #   result <- microbenchmark(
   #     {martingale_strategy(input$num_sims, input$start_bet, input$bet_amount, roulette, input$tot_spin)},
