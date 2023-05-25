@@ -1,9 +1,10 @@
-
+/* Setting minimum width for the page */
 
 .section_HP{
   min-width: 900px;
 
 }
+
 
 .box {
           border-radius: 10px;
@@ -76,13 +77,13 @@
 
 
           background-color: black;
-          border-color: black; /* au cas ou on décide de mettre une border je le met just en noir*/
+          border-color: black; /* In case we want to add a border*/
 }
 
 
 
 
-/* nom du casino dans la navbar */
+/* Name of casino in the navbar */
 
 .navbar-title>a{
   font-size: 25px;
@@ -90,20 +91,20 @@
   text-decoration: none;
 
 }
-/* couleur quand on passe la souris sur la navbar du background et des lettres */
+/* color when we put the mouse over the navbar */
 .navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
   color: #196c2e;
   background-color: black; /* set to black so it does not change when we hover */
 }
 
 
-/* autres éléments de la navbar */
+
 .navbar-default .navbar-nav>li>a {
     color: grey;
     transition: color 0.4s;
 }
 
-/* autres éléments de la navbar couleur quand on séléctione la séction */
+/* Section color when we clikc on a it */
 .navbar-default .navbar-nav>.active>a{
 
     background-color: #F8AF36;
@@ -118,19 +119,19 @@
 .navbar-default .navbar-nav>li>a,
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
-  color: grey; /* Replace with your desired color */
+  color: grey;
 }
 
 /* Override text color for selected and active links */
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:focus,
 .navbar-default .navbar-nav > .active > a:hover {
-  color: white; /* Set the desired text color for selected and active links */
+  color: white;
       background-color: #F8AF36;
     box-shadow: 0px 6px 5px #F8AF36;
 }
 
-/* Second Paragraph: Strategies */
+
 
 
 
