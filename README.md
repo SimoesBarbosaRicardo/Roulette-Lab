@@ -6,7 +6,7 @@ You can also find the github of the project [here](https://github.com/SimoesBarb
 ## How to run the app
 Open with Rstudio the "app.r" file, and then click on "Run app" to launch the app.
 
-<iframe width="640" height="360" src="https://www.youtube.com/embed/f_IEJwUHJbs" title="Video presentation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![Video Presentation](https://img.youtube.com/vi/f_IEJwUHJbs/0.jpg)](https://www.youtube.com/watch?v=f_IEJwUHJbs)
 
 ## Package Requirements
 To run our app, you need to install some packages. Run the following command in the R console :
